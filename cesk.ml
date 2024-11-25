@@ -12,11 +12,11 @@ type config = term * env * store * cont
 
 (* Address *)
 and addr = int
-
+これでええかな
 
 (* Environment *)
 and env = (var * addr) list
-
+変えなきゃかも
 
 (* Closure *)
 and storable = Clo of lambda * env
@@ -29,3 +29,8 @@ and cont =
   | Done (* hole *)
   | Ar of term * env * cont
   | Fn of lambda * env * cont
+
+
+多分CEKにStoreの定義を要所要所丁寧に追加していくのかな
+
+(* futher exploit the store to allocate continuations, whichc corresponds to a well-known implementation technique used in FL compilers (Shao&Appel, 1994) *)
