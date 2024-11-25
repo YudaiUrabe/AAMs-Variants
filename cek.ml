@@ -1,52 +1,40 @@
 (* Object Langugae -untyped lambda calculus(CbV)- *)
 
-
-
-
-
-
 type var = string
-and Lambda = var * term
-
+and lambda = var * term
 and term = 
   | TmVar of var
-  | TmAbs of Lambda
+  | TmAbs of lambda
   | TmApp of term * term
-
-
 
 (* SYNTAX of CEK machine *)
 
 (* configuration
  triple of a control string(an expression), an environment and continuation)
 *)
-and Σ = term * Env * Cont
+type config = term * env * cont
 
 (* Closure is pair of a value and environment 
-useful to implement lambda abstraction *)
-
-and d = Clo of Lambda * Env
+*)
+and d = Clo of lambda * env
 
 (* Environment
 is implemented as finite maps from variables to closures.
-This may be an alternative to substitution in λ-Calculus
+This looks similar to (but different from) substitution in λ-Calculus
 *)
-
-and Env = TmVar * d
+and env = (var * d) list
 
 (* Continuation
 represent evaluation context.
 E ::= [] | E[([] term)] | E[(value [])]
 *)
 
-
-type Cont = 
+and cont = 
   | Done (* hole *)
-  | Ar of term * Env * Cont
-  | Fn of Lambda * Env * Cont
+  | Ar of term * env * cont
+  | Fn of lambda * env * cont
 
 
-(* tests *)
 
 
 
@@ -58,7 +46,7 @@ type :-> k v = Data.Map.Map k v
 
 (* syntactic sugar *)
 
-~~~
+
 
 
 (* SEMANTICS of CEK machine *)
@@ -76,7 +64,7 @@ application
 abstraction
 
 
-val step : Σ -> Σ = <fun>
+val step : config -> config = <fun>
 
 
 (* injection function 
@@ -84,7 +72,7 @@ the initial machine state for a closed expression e *)
 
 let inject 
 
-val inject : term -> Σ = <fun>
+val inject : term -> config = <fun>
 
 
 
@@ -97,4 +85,9 @@ evaluate
 
 (* isFinal *)
 isFinal
+
+
+
+
+
 
