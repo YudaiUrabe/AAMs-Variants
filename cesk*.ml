@@ -1,4 +1,7 @@
+(* Reference: "Systematic abstraction of abstract machines" *)
+
 (* Object Langugae -untyped lambda calculus(CbV)- *)
+
 
 
 
@@ -14,11 +17,11 @@ type config = term * env * store * cont
 
 (* Address *)
 and addr = int
-
+これでええかな
 
 (* Environment *)
 and env = (var * addr) list
-
+変えなきゃかも
 
 (* Closure *)
 and storable = 
