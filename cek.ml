@@ -1,3 +1,5 @@
+(* Reference: "Systematic abstraction of abstract machines" *)
+
 (* Object Langugae -untyped lambda calculus(CbV)- *)
 
 type var = string
@@ -14,6 +16,8 @@ and term =
 *)
 type config = term * env * cont
 
+
+
 (* Closure is pair of a value and environment 
 *)
 and d = Clo of lambda * env
@@ -29,10 +33,21 @@ represent evaluation context.
 E ::= [] | E[([] term)] | E[(value [])]
 *)
 
+
 and cont = 
   | Done (* hole *)
   | Ar of term * env * cont
   | Fn of lambda * env * cont
+
+(* tests *)
+let ex_env : env = [("a", Clo(("b", TmVar "b"), []))]
+
+let ex_term : term = TmApp(TmVar "a", TmVar "b")
+
+let test_clo : d = Clo (("c", TmVar "c"), ex_env)
+
+let test_cont : cont = Fn (("c", TmVar "c"), ex_env, Done)
+
 
 
 
@@ -41,11 +56,10 @@ and cont =
 
 (* type operator *)
 
-type :-> k v = Data.Map.Map k v
+type ('k, 'v)(:->) = Data.Map.Map k v
 
 
 (* syntactic sugar *)
-
 
 
 
@@ -55,13 +69,15 @@ type :-> k v = Data.Map.Map k v
 as a partial function *)
 
 
-let step 
+let step (t, ρ, k) = 
+  match t with
+    | TmVar x -> ()
 
-variables　
-
-application
-
-abstraction
+    ~~~~~~~
+    | TmApp e0 e1 -> (e0, ρ, Ar(e1, ρ,))
+    | TmAbs lam 
+  -Ar
+  -Fn
 
 
 val step : config -> config = <fun>
@@ -69,7 +85,6 @@ val step : config -> config = <fun>
 
 (* injection function 
 the initial machine state for a closed expression e *)
-
 let inject 
 
 val inject : term -> config = <fun>
@@ -85,9 +100,6 @@ evaluate
 
 (* isFinal *)
 isFinal
-
-
-
 
 
 
