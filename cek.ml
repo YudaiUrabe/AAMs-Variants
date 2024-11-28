@@ -9,6 +9,7 @@ and term =
   | TmAbs of lambda
   | TmApp of term * term
 
+
 (* SYNTAX of CEK machine *)
 
 (* configuration
@@ -28,11 +29,11 @@ This looks similar to (but different from) substitution in λ-Calculus
 *)
 and env = (var * d) list
 
+
 (* Continuation
 represent evaluation context.
 E ::= [] | E[([] term)] | E[(value [])]
 *)
-
 
 and cont = 
   | Done (* hole *)
@@ -40,33 +41,38 @@ and cont =
   | Fn of lambda * env * cont
 
 (* tests *)
-let ex_env : env = [("a", Clo(("b", TmVar "b"), []))]
+let ex_env1 : env = [("a", Clo(("b", TmVar "b"), []))]
 
 let ex_term : term = TmApp(TmVar "a", TmVar "b")
 
-let test_clo : d = Clo (("c", TmVar "c"), ex_env)
+let test_clo : d = Clo (("c", TmVar "c"), ex_env1)
 
-let test_cont : cont = Fn (("c", TmVar "c"), ex_env, Done)
-
-
-
-
-
+let test_cont : cont = Fn (("c", TmVar "c"), ex_env1, Done)
 
 
 (* type operator *)
+module StringMap = Map.Make(String)
+type map = string StringMap.t
 
-type ('k, 'v)(:->) = Data.Map.Map k v
 
 
 (* syntactic sugar *)
+let (==>) x y = (x, y)  (* tuple *)
+let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key value acc) map entries
+
+(* test *)
+let ex_env2 = StringMap.empty
+let updated_env = ex_env2 // [("x" ==> 1); ("y" ==> 2)]
 
 
 
 (* SEMANTICS of CEK machine *)
 
 (* transition relation for the CEK machine 
-as a partial function *)
+as a partial function 
+one-step
+*)
+
 
 
 let step (t, ρ, k) = 
@@ -75,7 +81,8 @@ let step (t, ρ, k) =
 
     ~~~~~~~
     | TmApp e0 e1 -> (e0, ρ, Ar(e1, ρ,))
-    | TmAbs lam 
+    | TmAbs lam -> 
+ 
   -Ar
   -Fn
 
@@ -100,6 +107,7 @@ evaluate
 
 (* isFinal *)
 isFinal
+
 
 
 
