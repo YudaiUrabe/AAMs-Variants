@@ -10,13 +10,13 @@ and term =
   | TmApp of term * term
 
 
+
 (* SYNTAX of CEK machine *)
 
 (* configuration
  triple of a control string(an expression), an environment and continuation)
 *)
 type config = term * env * cont
-
 
 
 (* Closure is pair of a value and environment 
@@ -30,10 +30,12 @@ This looks similar to (but different from) substitution in λ-Calculus
 and env = (var * d) list
 
 
+
 (* Continuation
 represent evaluation context.
 E ::= [] | E[([] term)] | E[(value [])]
 *)
+
 
 and cont = 
   | Done (* hole *)
@@ -75,26 +77,30 @@ one-step
 
 
 
-let step (t, ρ, k) = 
-  match t with
-    | TmVar x -> ()
+let step (sigma: config): config = 
+  match sigma with
+  | (TmVar x, rho, kappa) ->
+    let Clo(lam, rho') = List.assoc x rho in 
+    (TmAbs lam, rho', kappa)
 
-    ~~~~~~~
-    | TmApp e0 e1 -> (e0, ρ, Ar(e1, ρ,))
-    | TmAbs lam -> 
- 
-  -Ar
-  -Fn
+| (TmApp (f,e), rho, kappa) ->
+    (f, rho, Ar(e, rho, kappa))
 
 
-val step : config -> config = <fun>
+| (TmAbs lam, rho, Ar(e, rho', kappa)) ->
+    (e, rho', Fn(lam, rho, kappa)) 
+
+
+| (TmAbs lam, rho, Fn((x, e) , rho', kappa)) -> 
+    (e,rho'//[x ==> Clo(lam, rho)], kappa)
+
 
 
 (* injection function 
 the initial machine state for a closed expression e *)
-let inject 
+let inject (e;term) : config =
+  (e, StringMap.empty, Done)
 
-val inject : term -> config = <fun>
 
 
 
@@ -107,6 +113,7 @@ evaluate
 
 (* isFinal *)
 isFinal
+
 
 
 
