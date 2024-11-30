@@ -11,8 +11,6 @@ and term =
 
 
 
-(* SYNTAX of CEK machine *)
-
 (* configuration
  triple of a control string(an expression), an environment and continuation)
 *)
@@ -29,13 +27,10 @@ This looks similar to (but different from) substitution in λ-Calculus
 *)
 and env = (var * d) list
 
-
-
 (* Continuation
 represent evaluation context.
 E ::= [] | E[([] term)] | E[(value [])]
 *)
-
 
 and cont = 
   | Done (* hole *)
@@ -51,11 +46,9 @@ let test_clo : d = Clo (("c", TmVar "c"), ex_env1)
 
 let test_cont : cont = Fn (("c", TmVar "c"), ex_env1, Done)
 
-
 (* type operator *)
 module StringMap = Map.Make(String)
 type map = string StringMap.t
-
 
 
 (* syntactic sugar *)
@@ -68,13 +61,11 @@ let updated_env = ex_env2 // [("x" ==> 1); ("y" ==> 2)]
 
 
 
-(* SEMANTICS of CEK machine *)
 
 (* transition relation for the CEK machine 
 as a partial function 
 one-step
 *)
-
 
 
 let step (sigma: config): config = 
@@ -95,26 +86,29 @@ let step (sigma: config): config =
     (e,rho'//[x ==> Clo(lam, rho)], kappa)
 
 
-
 (* injection function 
 the initial machine state for a closed expression e *)
-let inject (e;term) : config =
+let inject (e:term) : config =
   (e, StringMap.empty, Done)
 
+(* auxiliary functions for evaluation function *)
+(* isFinal *)
+let isFinal (sigma_state: config) : bool =
+  match sigma_state with
+    |(TmAbs _, rho, Done) -> true
+    | _ -> false
+
+(* collect *)
+let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: config): config list =
+  if isFinal sigma_collect then
+    [sigma_collect] 
+  else
+    sigma_collect :: collect f isFinal (f sigma_collect)
 
 
-
-
-    (* auxiliary function for evaluation function *)
-collect
 
 (* evaluation function *)
-evaluate
+let evaluate (e: term): config list =
+  collect step isFinal(inject e)
 
-(* isFinal *)
-isFinal
-
-
-
-
-
+(*　test *)
