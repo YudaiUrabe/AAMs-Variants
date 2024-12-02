@@ -21,12 +21,11 @@ type config = term * env * store * cont
 and env = addr StringMap.t
   
 and storable = Clo of lambda * env
-(* 閉包はないのかしら，いや呼称しないだけかもで，こいつがCEKにおける閉包の代わりな気がする *)
 
 (* store
  is a finite map from address to storable values *)
  and store =  storable StringMap.t
-(* これってちゃんとアドレスからのマップだと書けているか？ *)
+
 
 (* Continuation *)
 and cont = 
@@ -63,7 +62,7 @@ let step (sigma: config): config =
 
 | (TmAbs lam, rho, sigma, Ar(e, rho', kappa)) ->
     (e, rho', sigma, Fn(lam, rho, kappa)) 
-(* 引数を評価するため継続を展開 *)
+
 
 | (TmAbs lam, rho, sigma, Fn((x, e) , rho', kappa)) -> 
     (e,rho'//[x ==> Clo(lam, rho)], kappa)   (* I will fix here soon. *)
