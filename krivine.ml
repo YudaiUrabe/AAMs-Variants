@@ -1,8 +1,116 @@
-(* Object Langugae -untyped lambda calculus- *)
+(* Reference: "Systematic abstraction of abstract machines" §4*)
+
+module StringMap = Map.Make(String)
+
+type var = string
+and lambda = var * term
+and term = 
+  | TmVar of var
+  | TmAbs of lambda
+  | TmApp of term * term
 
 
 
-(* Krivine Machine *)
+(* call-by-name Krivine Machine *)
+
+(* SYNTAX of Krivine machine *)
+
+(* configuration*)
+type config = term * env * store * cont
+  
+and storable = 
+  | Thunk of term * env
+  | Clo of lambda * env
+
+(* store *)
+and store =  storable StringMap.t
+
+(* Continuation *)
+and cont = 
+  | Done
+  | C1 of addr * cont
+  | C2 of addr * cont
+
+(* Environment *)
+and env = addr StringMap.t
+  
+(* Address *)
+and addr = int
+
+(* tests *)
 
 
+
+
+
+
+(* type operator *)
+type map = string StringMap.t
+
+(* syntactic sugar *)
+let (==>) x y = (x, y)  (* tuple *)
+let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key value acc) map entries
+
+
+
+
+
+
+
+
+
+
+
+(* SEMANTICS of CESK machine *)
+
+(* alloc function *)
+let alloc (sigma: store): addr =
+  ~~~~~~
+
+
+(* transition relation for the Krivine's machine *)
+let step (sigma: config): config = 
+  match sigma with
+  | (TmVar x, rho, sigma, kappa) ->
+    (* I will fix here soon! *)
+    let Clo(lam, rho') = List.assoc x rho in (TmAbs lam, rho', sigma, kappa)
+
+| (TmApp (f,e), rho, sigma, kappa) ->
+    (f, rho, sigma, Ar(e, rho, kappa))
+
+| (TmAbs lam, rho, sigma, Ar(e, rho', kappa)) ->
+    (e, rho', sigma, Fn(lam, rho, kappa)) 
+
+
+| (TmAbs lam, rho, sigma, Fn((x, e) , rho', kappa)) -> 
+    (e,rho'//[x ==> Clo(lam, rho)], kappa)   (* I will fix here soon. *)
+| _ -> failwith "Invalid configuration"
+
+
+(* injection function *)
+let inject (e:term) : config =
+  (e, rho0, sigma0, Done)
+~~~~~~
+
+(* collect *)
+let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: config): config list =
+  if isFinal sigma_collect then
+    [sigma_collect]
+  else
+    sigma_collect :: collect f isFinal (f sigma_collect)
+
+(* isFinal *)
+let isFinal (sigma_state: config) : bool =
+  match sigma_state with
+    |(TmAbs _, _, _, Done) -> true
+    | _ -> false
+
+
+(* evaluation function *)
+let evaluate (e: term): config list =
+  collect step isFinal(inject e)
+
+
+
+(*　test *)
 
