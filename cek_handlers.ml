@@ -10,10 +10,18 @@ and term =
   | TmVar of var
   | TmAbs of lambda
 
-~~~~~
 (* computations *)
+and comp = 
+  | TmApp of term * term
+  | Return of term
+  | Let of var * comp * comp
+  | Do of string * term
+  | Handle of comp * handler
 
 (* handlers *)
+and handler = 
+  | ReturnClause of var * comp
+  | OperationalClaus of string * var * string * comp * handler
 
 
 (* SYNTAX of CEK machine with handlers *)
@@ -23,6 +31,9 @@ and term =
 type config = term * env * cont
 
 
+(* Closure is pair of a value and environment 
+*)
+(* and d = Clo of lambda * env *)
 
 (* Environment
 *)
@@ -34,7 +45,9 @@ and cont =
   | Done (* hole *)
   | Ar of term * env * cont
   | Fn of lambda * env * cont
-~~~~~~
+
+
+
 (* Hanlder Closures　*)
 
 
@@ -61,7 +74,6 @@ M-RETCONT, M-RETHANDLER, M-RETTOP,
 M-OP, M-OP-HANDLER, M-OP-FORWARD 
 *)
 
-(* Identity continuation *)
 
 (*
 let step (sigma: config): config = 
@@ -76,6 +88,8 @@ let step (sigma: config): config =
      (e,rho'//[x ==> Clo(lam, rho)], kappa)
   | _ -> failwith "Invalid configuration"
 *)
+
+
 
 (*
 
