@@ -1,4 +1,4 @@
-(* Reference: "Systematic abstraction of abstract machines" §2.2*)
+(* Reference: "Systematic abstraction of abstract machines" §2.2, TAPL §7*)
 
 module StringMap = Map.Make(String)
 
@@ -56,7 +56,6 @@ let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key v
 
 
 
-
 (* SEMANTICS of CEK machine *)
 
 (* transition relation for the CEK machine 
@@ -68,20 +67,19 @@ one-step
 let step (sigma: config): config = 
   match sigma with
   | (TmVar x, rho, kappa) ->
-    let Clo(lam, rho') = List.assoc x rho in (TmAbs lam, rho', kappa)
-(* I will fix here *)
-| (TmApp (f,e), rho, kappa) ->
-    (f, rho, Ar(e, rho, kappa))
+      let Clo(lam, rho') = StringMap.find x rho in (TmAbs lam, rho', kappa)
+
+  | (TmApp (f,e), rho, kappa) ->
+      (f, rho, Ar(e, rho, kappa))
 
 
-| (TmAbs lam, rho, Ar(e, rho', kappa)) ->
-    (e, rho', Fn(lam, rho, kappa)) 
+  | (TmAbs lam, rho, Ar(e, rho', kappa)) ->
+      (e, rho', Fn(lam, rho, kappa)) 
 
 
-| (TmAbs lam, rho, Fn((x, e) , rho', kappa)) -> 
-    (e,rho'//[x ==> Clo(lam, rho)], kappa)
+  | (TmAbs lam, rho, Fn((x, e) , rho', kappa)) -> 
+      (e,rho'//[x ==> Clo(lam, rho)], kappa)
 
-| _ -> failwith "Invalid configuration" (* exception*)
 
 
 
@@ -93,7 +91,9 @@ let inject (e:term) : config =
   (e, StringMap.empty, Done)
 
 (* auxiliary functions for evaluation function *)
-(* isFinal *)
+(* isFinal 
+check for the empty continuation
+*)
 let isFinal (sigma_state: config) : bool =
   match sigma_state with
     |(TmAbs _, rho, Done) -> true
@@ -107,9 +107,7 @@ let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: co
     sigma_collect :: collect f isFinal (f sigma_collect)
 
 
-
 (* evaluation function *)
 let evaluate (e: term): config list =
   collect step isFinal(inject e)
 
-(*　test *)
