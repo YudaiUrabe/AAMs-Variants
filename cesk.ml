@@ -1,6 +1,7 @@
 (* Reference: "Systematic abstraction of abstract machines" §2.4*)
 
 module StringMap = Map.Make(String)
+module AddrMap = Map.Make(Int)
 
 type var = string
 and lambda = var * term
@@ -10,7 +11,8 @@ and term =
   | TmApp of term * term
 
 (* CESK Machine *)
-(* Adding a store to CEK machine and use it allocate variable bindings, thereby eliminating recursion from the environment in CEK machine*)
+(* Adding a store to CEK machine and use it allocate variable bindings,
+ thereby eliminating recursion from the environment in CEK machine*)
 
 (* SYNTAX of CESK machine *)
 
@@ -19,13 +21,12 @@ type config = term * env * store * cont
 
 (* Environment *)
 and env = addr StringMap.t
-  
+
 and storable = Clo of lambda * env
 
 (* store
  is a finite map from address to storable values *)
- and store =  storable StringMap.t
-
+ and store =  storable AddrMap.t
 
 (* Continuation *)
 and cont = 
@@ -39,6 +40,9 @@ and addr = int
 (* tests *)
 
 
+
+
+
 (* type operator *)
 type map = string StringMap.t
 
@@ -48,41 +52,57 @@ let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key v
 
 
 
+
+
+
+
+
 (* SEMANTICS of CESK machine *)
 
 (* transition relation for the CESK machine *)
 let step (sigma: config): config = 
   match sigma with
-  | (TmVar x, rho, sigma, kappa) ->
-    (* I will fix here soon! *)
-    let Clo(lam, rho') = List.assoc x rho in (TmAbs lam, rho', sigma, kappa)
+  | (TmVar x, rho, sigma_store, kappa) ->
+    let Clo(lam, rho') = StringMap.find x rho in (TmAbs lam, rho', sigma_store, kappa)
 
-| (TmApp (f,e), rho, sigma, kappa) ->
-    (f, rho, sigma, Ar(e, rho, kappa))
+  | (TmApp (f,e), rho, sigma_store, kappa) ->
+      (f, rho, sigma_store, Ar(e, rho, kappa))
 
-| (TmAbs lam, rho, sigma, Ar(e, rho', kappa)) ->
-    (e, rho', sigma, Fn(lam, rho, kappa)) 
+  | (TmAbs lam, rho, sigma_store, Ar(e, rho', kappa)) ->
+     (e, rho', sigma_store, Fn(lam, rho, kappa)) 
 
 
-| (TmAbs lam, rho, sigma, Fn((x, e) , rho', kappa)) -> 
-    (e,rho'//[x ==> Clo(lam, rho)], kappa)   (* I will fix here soon. *)
-| _ -> failwith "Invalid configuration"
+  | (TmAbs lam, rho, sigma_store, Fn((x, e) , rho', kappa)) -> 
+      let a' = alloc sigma_store in (e, rho'//[x ==> a'], sigma_store//[a' ==> Clo(lam, rho)], kappa)
+  | _ -> failwith "Invalid configuration"
+
+
 
 (* alloc function *)
-let alloc (sigma: store): addr =
-~~~~~~
+(* Extract all keys from s, find the maximum key in the list,
+ and return the maximum key plus one as the new address. *)
+let alloc (s: store): addr =
+    let keys = AddrMap.fold (fun key _ acc -> key :: acc) s [] in
+    let max_key = List.fold_left max 0 keys in
+    max_key + 1
+
+
+
+
+
 
 (* injection function *)
 let inject (e:term) : config =
-  (e, rho0, sigma0, Done)
-~~~~~~
+  let (rho0, s0) = (StringMap.empty, StringMap.empty) in (e, rho0, s0, Done)
+
+
 
 (* isFinal *)
-let isFinal (sigma_state: config) : bool =
-  match sigma_state with
+let isFinal (state: config) : bool =
+  match state with
     |(TmAbs _, _, _, Done) -> true
     | _ -> false
 
+
+
 (*　test *)
-
-
