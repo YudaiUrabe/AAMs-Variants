@@ -23,6 +23,7 @@ type config = term * env * store * cont
 and env = addr StringMap.t
 
 and storable = Clo of lambda * env
+(* 閉包はないのかしら，いや呼称しないだけかもで，storableがCEKにおける閉包の代わりな気がする *)
 
 (* store
  is a finite map from address to storable values *)
@@ -63,14 +64,15 @@ let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key v
 let step (sigma: config): config = 
   match sigma with
   | (TmVar x, rho, sigma_store, kappa) ->
+    (* ここって，String Mapでいいんかいな？あと，Clo＝の右辺のやつ絶対うまく実装できていない気がする．．．StringMap.find x rho でええのか？ *)
     let Clo(lam, rho') = StringMap.find x rho in (TmAbs lam, rho', sigma_store, kappa)
 
   | (TmApp (f,e), rho, sigma_store, kappa) ->
       (f, rho, sigma_store, Ar(e, rho, kappa))
 
   | (TmAbs lam, rho, sigma_store, Ar(e, rho', kappa)) ->
-     (e, rho', sigma_store, Fn(lam, rho, kappa)) 
-
+      (e, rho', sigma_store, Fn(lam, rho, kappa)) 
+(* 引数を評価するため継続を展開??? *)
 
   | (TmAbs lam, rho, sigma_store, Fn((x, e) , rho', kappa)) -> 
       let a' = alloc sigma_store in (e, rho'//[x ==> a'], sigma_store//[a' ==> Clo(lam, rho)], kappa)
@@ -85,6 +87,9 @@ let alloc (s: store): addr =
     let keys = AddrMap.fold (fun key _ acc -> key :: acc) s [] in
     let max_key = List.fold_left max 0 keys in
     max_key + 1
+ここの実装自信がない
+  (* sから全てのキーを取り出して，そのリストから最大のキーを求め，その最大のキーに１を加えたものをアドレスとして返す *)
+  コレクトやevalの代わりかしら？
 
 
 
@@ -106,3 +111,14 @@ let isFinal (state: config) : bool =
 
 
 (*　test *)
+
+
+(*
+二箇所修正したらいい感じじゃないか？
+
+
+envは，  クロージャの代わりにアドレスに飛ばすんやね
+
+なんで，injectのところの二つ目のs０に赤線が引かれるんやろね．
+
+*)

@@ -1,6 +1,7 @@
 (* Reference: "Systematic abstraction of abstract machines" §2.6 *)
 
 module StringMap = Map.Make(String)
+module AddrMap = Map.Make(Int)
 
 (* Object Langugae -untyped lambda calculus(CbV)- *)
 
@@ -17,7 +18,6 @@ and term =
 eliminate recursion from continuation in CESK machine
 *)
 
-
 (* SYNTAX of CESK* machine *)
 
 (* configuration*)
@@ -29,6 +29,7 @@ and cont =
   | Ar of term * env * addr
   | Fn of lambda * env * addr
 
+
 and storable = 
   | Clo of lambda * env
   | Cont of cont
@@ -37,13 +38,14 @@ and storable =
 and env = addr StringMap.t
 
 (* store *)
- and store =  storable StringMap.t
-
+ and store =  storable AddrMap.t
 
 (* Address *)
 and addr = int
 
 (* tests *)
+
+
 
 
 (* type operator *)
@@ -56,30 +58,40 @@ let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key v
 
 
 
+
+
 (* SEMANTICS of CESK* machine *)
 
 (* transition relation for the CESK machine *)
 let step (sigma: config): config = 
   match sigma with
-  | (TmVar x, rho, sigma, kappa) ->
-    (* I will fix here soon! *)
-    let Clo(lam, rho') = List.assoc x rho in (TmAbs lam, rho', sigma, kappa)
+  | (TmVar x, rho, s, kappa) ->
+    let Clo(lam, rho') = StringMap.find x rho in
+     (TmAbs lam, rho', s, kappa)
 
-| (TmApp (f,e), rho, sigma, kappa) ->
-    (f, rho, sigma', kappa')
-    (* I will add some here. *)
+  | (TmApp (f,e), rho, s, kappa) ->
+      let a' = alloc s in
+      let s' = s//[a' ==> Cont kappa] in
+      let kappa' = Ar(e, rho, a') in
+        (f, rho, s', kappa')
 
-| (TmAbs lam, rho, sigma, Ar(e, rho', a')) ->
-    (e, rho', sigma, Fn(lam, rho, a')) 
+  | (TmAbs lam, rho, s, Ar(e, rho', a')) ->
+      (e, rho', s, Fn(lam, rho, a')) 
 
-| (TmAbs lam, rho, sigma, Fn((x, e) , rho', a)) -> 
-    (e,rho'//[x ==> Clo(lam, rho)], kappa)   (* I will fix here soon. *)
+  | (TmAbs lam, rho, s, Fn((x, e) , rho', a)) -> 
+    let Cont kappa = StringMap.find a s in
 
-| _ -> failwith "Invalid configuration"
+    let a' = alloc s in 
+      (e, rho'//[x ==> a'], s//[a' ==> Clo(lam, rho)], kappa)
+
+  | _ -> failwith "Invalid configuration"
+
+
+
 
 (* alloc function *)
-let alloc (sigma: store): addr =
-~~~~~~
+let alloc (s: store): addr =
+
 
 
 
