@@ -4,7 +4,9 @@
 module StringMap = Map.Make(String)
 
 (* Object Langugae -Fine-grain call-by-value lambda calculus- *)
+(* ref. An Abstract Machine Semantics for Handlers, Mar 2017, p.6 *)
 type var = string
+and label = string
 and lambda = var * term
 and term = 
   | TmVar of var
@@ -15,21 +17,22 @@ and comp =
   | TmApp of term * term
   | Return of term
   | Let of var * comp * comp
-  | Do of string * term
+  | Do of label * term
   | Handle of comp * handler
 
 (* handlers *)
 and handler = 
   | ReturnClause of var * comp
-  | OperationalClaus of string * var * string * comp * handler
-
+  | OperationClause of label * var * string * comp * handler
 
 (* SYNTAX of CEK machine with handlers *)
+(* ref. An Abstract Machine Semantics for Handlers, Mar 2017, p.18 *)
 
 (* configuration
 *)
-type config = term * env * cont
-
+type config = 
+  | term * env * cont
+  | term * env * cont * cont' (* Augmented the configuration space of CEK *)
 
 (* Closure is pair of a value and environment 
 *)
@@ -39,6 +42,11 @@ type config = term * env * cont
 *)
 and env = d StringMap.t
 
+
+
+
+
+
 (* Continuation*)
 
 and cont = 
@@ -46,77 +54,58 @@ and cont =
   | Ar of term * env * cont
   | Fn of lambda * env * cont
 
-
-
 (* Hanlder Closures　*)
 
 
 
 
+
+
   (* type operator *)
-(* type map = string StringMap.t *)
+type map = string StringMap.t
 
 (* syntactic sugar *)
-(* 
 let (==>) x y = (x, y)  (* tuple *)
 let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key value acc) map entries
- *)
-
 
 
 
 (* SEMANTICS of this machine *)
 
-(* transition function 
-M-INT, M-APP, M-APPCONT, 
-M-LET,M-HANDLER,
-M-RETCONT, M-RETHANDLER, M-RETTOP,
-M-OP, M-OP-HANDLER, M-OP-FORWARD 
-*)
+(* IdentityContinuation *)
+ilet identityContinuation ~~~~~~
 
-
-(*
-let step (sigma: config): config = 
-  match sigma with
-  | (TmVar x, rho, kappa) ->
-    let Clo(lam, rho') = List.assoc x rho in (TmAbs lam, rho', kappa)
-  | (TmApp (f,e), rho, kappa) ->
-    (f, rho, Ar(e, rho, kappa))
-  | (TmAbs lam, rho, Ar(e, rho', kappa)) ->
-    (e, rho', Fn(lam, rho, kappa)) 
-  | (TmAbs lam, rho, Fn((x, e) , rho', kappa)) -> 
-     (e,rho'//[x ==> Clo(lam, rho)], kappa)
-  | _ -> failwith "Invalid configuration"
-*)
-
-
-
-(*
-
-(* injection function 
-the initial machine state for a closed expression e *)
+(* injection function M-INIT *)
 let inject (e:term) : config =
-  (e, StringMap.empty, Done)
+  (e, StringMap.empty, identityContinuation)
 
-(* auxiliary functions for evaluation function *)
-(* isFinal *)
-let isFinal (sigma_state: config) : bool =
-  match sigma_state with
-    |(TmAbs _, rho, Done) -> true
-    | _ -> false
+(* transition function *)
+(* ref."Liberating Effects with Rows and Handlers", FIg.9 *)
+let step (sigma: config): config = 
+    match sigma with
+    |    (* M-APP *)
 
-(* collect *)
-let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: config): config list =
-  if isFinal sigma_collect then
-    [sigma_collect]
-  else
-    sigma_collect :: collect f isFinal (f sigma_collect)
+(* M-APPCONT *)
 
-(* evaluation function *)
-let evaluate (e: term): config list =
-  collect step isFinal(inject e)
+(* M-LET *)
+
+(* M-HANDLE *)
+
+
+(* M-RETHANDLER *)
+
+
+(* M-OP *)
+
+(* M-OP-HANDLE *)
+
+
+(* M-OP-FORWARD *)
+
+
+
 
 (*　test *)
 
 
-*)
+
