@@ -1,5 +1,6 @@
 (* Object Langugae -fine-graing CbV lambda calculus- *)
-(* Reference: "Liberating Effects with Rows and Handlers" *)
+(* Reference: "Liberating Effects with Rows and Handlers",
+"Foundations for Programming and Implementing Effect Handlers"(2021) *)
 
 module StringMap = Map.Make(String)
 
@@ -7,17 +8,17 @@ module StringMap = Map.Make(String)
 (* ref. An Abstract Machine Semantics for Handlers, Mar 2017, p.6 *)
 type var = string
 and label = string
-and lambda = var * term
-and term = 
+and lambda = var * comp
+and termvalue = 
   | TmVar of var
   | TmAbs of lambda
 
 (* computations *)
 and comp = 
-  | TmApp of term * term
-  | Return of term
+  | TmApp of termvalue * termvalue
+  | Return of termvalue
   | Let of var * comp * comp
-  | Do of label * term
+  | Do of label * termvalue
   | Handle of comp * handler
 
 (* handlers *)
@@ -25,22 +26,45 @@ and handler =
   | ReturnClause of var * comp
   | OperationClause of label * var * string * comp * handler
 
+
+
+
+
 (* SYNTAX of CEK machine with handlers *)
 (* ref. An Abstract Machine Semantics for Handlers, Mar 2017, p.18 *)
 
-(* configuration
-*)
+(* configuration *)
 type config = 
-  | term * env * cont
-  | term * env * cont * cont' (* Augmented the configuration space of CEK *)
+  | comp * val_env * cont
+  | comp * val_env * cont * cont' (* Augmented the configuration space of CEK *)
 
-(* Closure is pair of a value and environment 
-*)
-(* and d = Clo of lambda * env *)
 
-(* Environment
-*)
-and env = d StringMap.t
+
+
+
+
+
+
+
+
+(* Values *)
+and cekvalue = 
+
+(* Value environments *)
+and val_env =
+
+(* Closure *)
+and d = Clo of lambda * env
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -54,7 +78,29 @@ and cont =
   | Ar of term * env * cont
   | Fn of lambda * env * cont
 
+
+
+
+
+and cont' =
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 (* Hanlder Closures　*)
+and chi = Clo of 
+
+
 
 
 
@@ -70,37 +116,93 @@ let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key v
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 (* SEMANTICS of this machine *)
 
 (* IdentityContinuation *)
-ilet identityContinuation ~~~~~~
+let idCont = [([], (StringMap.empty, ))]
 
-(* injection function M-INIT *)
-let inject (e:term) : config =
-  (e, StringMap.empty, identityContinuation)
+
+(* injection function M-INIT 
+map a computation term into an machine conficuration
+*)
+let inject (m:comp) : config =
+  (m, StringMap.empty, idCont)
+
+
+
+
+
+(* Interpretation function for values *)
+let initerpret_value (tv: termvalue)(rho: val_env): cekvalue =
+  match tv with
+  | (TmVar x, rho) -> 
+  | (TmAbs lam, rho) -> 
+
+
+
+
+
+
+
+
+
+
+
 
 (* transition function *)
 (* ref."Liberating Effects with Rows and Handlers", FIg.9 *)
 let step (sigma: config): config = 
     match sigma with
-    |    (* M-APP *)
+    | (TmApp(v,w), rho, kappa) -> 
+      () (* M-APP *)
 
-(* M-APPCONT *)
+    | (TmApp(v,w), rho, kappa) ->
+      () (* M-APPCONT *)
 
-(* M-LET *)
-
-(* M-HANDLE *)
-
-
-(* M-RETHANDLER *)
-
-
-(* M-OP *)
-
-(* M-OP-HANDLE *)
+    | (Let(x,M,N), rho, ) ->
+      () (* M-LET *)
+    | (Handle(M, H), rho, kappa) ->
+      (M, rho, ) (* M-HANDLE *)
 
 
-(* M-OP-FORWARD *)
+
+
+
+
+    | () ->
+      () (* M-RETCONT *)
+    | () ->
+      () (* M-RETHANDLER *)
+    | () ->
+      () (* M-RETTOP *)
+
+
+    | (Do(l, V), rho, kappa) ->
+      (Do(l, V), rho, kappa, []) (* M-OP *)
+    | (Do(l, tv), rho, , kappa') ->
+      ()  (* M-OP-HANDLE *) 
+    | (Do(l, tv), rho, , kappa') ->
+      ()  (* M-OP-FORWARD *) 
+
+
+
+
+
+
+
+
 
 
 
