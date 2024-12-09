@@ -77,6 +77,7 @@ and pure_cont =
 
 and pure_cont_frame = (val_env, x, comp)
 
+
 (* Hanlder Closures　*)
 and chi = (val_env, handler)
 
@@ -105,7 +106,7 @@ and chi = (val_env, handler)
 (* SEMANTICS of this machine *)
 
 (* IdentityContinuation *)
-let idCont = [([], (StringMap.empty, ReturnClause ))]
+let idCont = [([], (StringMap.empty, ~~~~))]
 
 
 (* injection function M-INIT 
@@ -117,14 +118,15 @@ let inject (m:comp) : config =
 
 
 
-
 (* Interpretation function for values *)
-let initerpret_value (tv: termvalue)(rho: val_env): cekvalue =
+let interpret_value (tv: termvalue)(rho: val_env): cekvalue =
   match tv with
-  | (TmVar x, rho) -> 
-  | (TmAbs lam, rho) -> 
-
-
+  | TmVar x -> (
+    match StringMap.find_opt x rho with
+    | Some v -> v  (* Get the value of x under the environment rho *)
+    | None -> failwith ("Unbound variable: " ^ x)  (* Error if the variable is not found in the environment *)
+  )
+  | TmAbs lam -> Clo(rho, lam)
 
 
 
@@ -134,38 +136,54 @@ let initerpret_value (tv: termvalue)(rho: val_env): cekvalue =
 let step (sigma: config): config = 
     match sigma with
     | (TmApp(v,w), rho, kappa) -> 
-      () (* M-APP *)
+      let v' = interpret_value v rho in
+      let w' = interpret_value w rho in
+        (match v' with
+        | Clo(rho', (x, M)) -> 
+          (M, StringMap.add x w' rho', kappa)  (* M-APP *)
+        | _ -> failwith "Application error: not a closure")
 
     | (TmApp(v,w), rho, kappa) ->
-      () (* M-APPCONT *)
+      let kappa' = interpret_value v rho in 
+        (Return(w), rho, kappa' @ kappa) (* M-APPCONT *)
 
+    
     | (Let(x,M,N), rho, (s,chi)::kappa) ->
-      (M, rho, ((rho, x, N) :: s, chi) :: kappa) (* M-LET *)
+        (M, rho, ((rho, x, N) :: s, chi) :: kappa) (* M-LET *)
     | (Handle(M, H), rho, kappa) ->
-      (M, rho, ([],(rho, H))::kappa) (* M-HANDLE *)
+        (M, rho, ([],(rho, H))::kappa) (* M-HANDLE *)
 
+    | (Return V, rho, ((rho', x, N)::s, chi)::kappa) ->
+         (N, StringMap.add x (interpret_value V rho) rho', (s,chi)::kappa) (* M-RETCONT *)
+    | (Return V, rho, ([],(rho', H))::kappa) ->
+        (match H with 
+          | {return x -> M} -> 
+            (M, StringMap.add x (interpret_value V rho) rho'ちゃんと, kappa)  (* M-RETHANDLER *)
+          | _ -> failwith "Handle error: invalid handler"
+        )
+    | (Return V, rho, []) ->
+        interpret_value V rho (* M-RETTOP *)
 
-
-
-
-    | (Return(V), rho, ((rho', x, N)::s, chi)::kappa) ->
-      (N, , (s,chi)::kappa) (* M-RETCONT *)
-    | (Return(V), rho, ([],(rho', H))::kappa) ->
-      (M, , kappa) (* M-RETHANDLER *) 
-    | (Return(V), rho, []) ->
- (* M-RETTOP *)
 
 
     | (Do(l, V), rho, kappa) ->
-      (Do(l, V), rho, kappa, []) (* M-OP *)
+       (Do(l, V), rho, kappa, []) (* M-OP *)
 
     | (Do(l, tv), rho, (s, (rho', H))::kappa, kappa') ->
-      (M, ,kappa)  (* M-OP-HANDLE *) 
-    | (Do(l, tv), rho, (s, (rho', H))::kappa, kappa') ->
-      (Do(l, tv), rho, kappa, )  (* M-OP-FORWARD *) 
+      match H with 
+      | {l x k -> M} -> 
+           let updated_rho = StringMap.add x (interpret_value V rho) rho' in
+        (M, updated_rho, kappa) (* M-OP-HANDLE *)
+      | _ -> 
+          (Do(l, V), rho, kappa, kappa' @ [(s, (rho', H))]) (* M-OP-FORWARD *)
+   
+
+
+
+
+
+
+
 
 
 (*　test *)
-
-
-
