@@ -61,56 +61,44 @@ let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key v
 
 
 
-(* SEMANTICS of CESK machine *)
-
-(* alloc function *)
-let alloc (sigma: store): addr =
-  ~~~~~~
-
+(* SEMANTICS of Krivine's machine *)
 
 (* transition relation for the Krivine's machine *)
 let step (sigma: config): config = 
   match sigma with
-  | (TmVar x, rho, sigma, kappa) ->
-    (* I will fix here soon! *)
-    let Clo(lam, rho') = List.assoc x rho in (TmAbs lam, rho', sigma, kappa)
+  | (TmVar x, rho, s, kappa) ->
 
-| (TmApp (f,e), rho, sigma, kappa) ->
-    (f, rho, sigma, Ar(e, rho, kappa))
+  | (TmVar x, rho, s, kappa) ->
 
-| (TmAbs lam, rho, sigma, Ar(e, rho', kappa)) ->
-    (e, rho', sigma, Fn(lam, rho, kappa)) 
+| (TmApp (e0,e1), rho, s, kappa) ->
 
+| (TmAbs lam, rho, s, C1(a, kappa)) ->
 
-| (TmAbs lam, rho, sigma, Fn((x, e) , rho', kappa)) -> 
-    (e,rho'//[x ==> Clo(lam, rho)], kappa)   (* I will fix here soon. *)
+| (TmAbs (x, e), rho, s, C2(a, kappa)) -> 
+
 | _ -> failwith "Invalid configuration"
 
 
+
+
+
+
+
+
+
+(* alloc function *)
+
 (* injection function *)
-let inject (e:term) : config =
-  (e, rho0, sigma0, Done)
-~~~~~~
+
 
 (* collect *)
-let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: config): config list =
-  if isFinal sigma_collect then
-    [sigma_collect]
-  else
-    sigma_collect :: collect f isFinal (f sigma_collect)
+
 
 (* isFinal *)
-let isFinal (sigma_state: config) : bool =
-  match sigma_state with
-    |(TmAbs _, _, _, Done) -> true
-    | _ -> false
 
 
 (* evaluation function *)
-let evaluate (e: term): config list =
-  collect step isFinal(inject e)
 
-
-
+  
 (*　test *)
 
