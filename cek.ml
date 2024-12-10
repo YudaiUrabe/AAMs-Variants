@@ -10,8 +10,9 @@ and term =
   | TmAbs of lambda
   | TmApp of term * term
 
-
 (* CEK Machine *)
+(* SYNTAX of CEK machine *)
+
 (* configuration (state)
  triple of a control string(an expression), an environment and continuation)
 *)
@@ -45,10 +46,14 @@ let (==>) x y = (x, y)  (* tuple *)
 let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key value acc) map entries
 
 
+(* SEMANTICS of CEK machine *)
+
 (* transition relation for the CEK machine 
 as a partial function 
 one-step
 *)
+
+
 let step (sigma: config): config = 
   match sigma with
   | (TmVar x, rho, kappa) ->
@@ -90,11 +95,16 @@ then apply "step" repeatedly until the final state is reached, saving all interm
 let evaluate (e: term): config list =
   collect step isFinal(inject e)
 
+
+
+
 (*　test 
 (λa.a)(λb.b) -> (λb.b)
 *)
 let term_test = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
+
 let result = evaluate term_test
+
 (* auxiliary functions for this test *)
 let rec string_of_term (t: term) =
   match t with
@@ -106,3 +116,4 @@ let () =
   List.iter (fun (term_test, _, _) -> 
     Printf.printf "State: %s\n" (string_of_term term_test)
   ) result
+
