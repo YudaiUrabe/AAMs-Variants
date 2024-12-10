@@ -63,7 +63,6 @@ let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key v
 let step (sigma: config): config = 
   match sigma with
   | (TmVar x, rho, sigma_store, kappa) ->
-
     let Clo(lam, rho') = StringMap.find x rho in (TmAbs lam, rho', sigma_store, kappa)
 
   | (TmApp (f,e), rho, sigma_store, kappa) ->
@@ -91,6 +90,8 @@ let alloc (s: store): addr =
 
 
 
+
+
 (* injection function *)
 let inject (e:term) : config =
   let (rho0, s0) = (StringMap.empty, StringMap.empty) in (e, rho0, s0, Done)
@@ -106,3 +107,5 @@ let isFinal (state: config) : bool =
 
 
 (*　test *)
+
+
