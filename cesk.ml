@@ -91,7 +91,6 @@ let alloc (s: store): addr =
 
 
 
-
 (* injection function *)
 let inject (e:term) : config =
   let (rho0, s0) = (StringMap.empty, StringMap.empty) in (e, rho0, s0, Done)
@@ -107,5 +106,4 @@ let isFinal (state: config) : bool =
 
 
 (*　test *)
-
 
