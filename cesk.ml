@@ -63,6 +63,7 @@ let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key v
 let step (sigma: config): config = 
   match sigma with
   | (TmVar x, rho, sigma_store, kappa) ->
+
     let Clo(lam, rho') = StringMap.find x rho in (TmAbs lam, rho', sigma_store, kappa)
 
   | (TmApp (f,e), rho, sigma_store, kappa) ->
@@ -103,7 +104,4 @@ let isFinal (state: config) : bool =
     |(TmAbs _, _, _, Done) -> true
     | _ -> false
 
-
-
 (*　test *)
-
