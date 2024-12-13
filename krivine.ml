@@ -15,8 +15,6 @@ and term =
 
 (* SYNTAX of Krivine machine *)
 
-この機会ってロジック寄りなの？？？ウィキによると，The Krivine machine explains how to compute a recursive function.だってよ
-
 (* configuration*)
 type config = term * env * store * cont
   
@@ -77,7 +75,6 @@ let step (sigma: config): config =
 | (TmAbs lam, rho, s, C1(a, kappa)) ->
 
 | (TmAbs (x, e), rho, s, C2(a, kappa)) -> 
-ここの式の場合わけあっているかしら．．．
 
 | _ -> failwith "Invalid configuration"
 
