@@ -72,6 +72,7 @@ let step (sigma: config): config =
 
 | (TmApp (e0,e1), rho, s, kappa) ->
 
+
 | (TmAbs lam, rho, s, C1(a, kappa)) ->
 
 | (TmAbs (x, e), rho, s, C2(a, kappa)) -> 
