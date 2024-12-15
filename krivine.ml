@@ -15,6 +15,8 @@ and term =
 
 (* SYNTAX of Krivine machine *)
 
+
+
 (* configuration*)
 type config = term * env * store * cont
   
@@ -50,11 +52,6 @@ type map = string StringMap.t
 (* syntactic sugar *)
 let (==>) x y = (x, y)  (* tuple *)
 let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key value acc) map entries
-
-
-
-
-
 
 
 
