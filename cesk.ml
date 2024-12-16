@@ -41,8 +41,6 @@ and addr = int
 
 
 
-
-
 (* type operator *)
 type map = string StringMap.t
 
@@ -59,12 +57,20 @@ let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key v
 
 (* SEMANTICS of CESK machine *)
 
+(* alloc function *)
+(* Extract all keys from s, find the maximum key in the list,
+ and return the maximum key plus one as the new address. *)
+ let alloc (s: store): addr =
+  let keys = AddrMap.fold (fun key _ acc -> key :: acc) s [] in
+  let max_key = List.fold_left max 0 keys in
+  max_key + 1
+
 (* transition relation for the CESK machine *)
 let step (sigma: config): config = 
   match sigma with
   | (TmVar x, rho, sigma_store, kappa) ->
-
-    let Clo(lam, rho') = StringMap.find x rho in (TmAbs lam, rho', sigma_store, kappa)
+    let addr = StringMap.find x rho in (* (ρ!x) *)
+    let Clo(lam, rho') = AddrMap.find addr sigma_store in (TmAbs lam, rho', sigma_store, kappa)
 
   | (TmApp (f,e), rho, sigma_store, kappa) ->
       (f, rho, sigma_store, Ar(e, rho, kappa))
@@ -78,25 +84,10 @@ let step (sigma: config): config =
   | _ -> failwith "Invalid configuration"
 
 
-
-(* alloc function *)
-(* Extract all keys from s, find the maximum key in the list,
- and return the maximum key plus one as the new address. *)
-let alloc (s: store): addr =
-    let keys = AddrMap.fold (fun key _ acc -> key :: acc) s [] in
-    let max_key = List.fold_left max 0 keys in
-    max_key + 1
-
-
-
-
-
-
-(* injection function *)
+(* injection function 
+combines the term with the empty env, store and continuation*)
 let inject (e:term) : config =
   let (rho0, s0) = (StringMap.empty, StringMap.empty) in (e, rho0, s0, Done)
-
-
 
 (* isFinal *)
 let isFinal (state: config) : bool =
@@ -104,4 +95,26 @@ let isFinal (state: config) : bool =
     |(TmAbs _, _, _, Done) -> true
     | _ -> false
 
-(*　test *)
+
+(*　test 
+(λa.a)(λb.b) -> (λb.b)
+*)
+
+let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: config): config list =
+  if isFinal sigma_collect then
+    [sigma_collect]
+  else
+    sigma_collect :: collect f isFinal (f sigma_collect)
+
+let evaluate (e: term): config list =
+  collect step isFinal(inject e)
+
+let term_test = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
+
+let result = evaluate term_test
+
+
+
+
+
+
