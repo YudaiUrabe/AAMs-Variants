@@ -10,12 +10,9 @@ and term =
   | TmApp of term * term
 
 
-
 (* call-by-name Krivine Machine *)
 
 (* SYNTAX of Krivine machine *)
-
-
 
 (* configuration*)
 type config = term * env * store * cont
@@ -26,6 +23,7 @@ and storable =
 
 (* store *)
 and store =  storable StringMap.t
+
 
 (* Continuation *)
 and cont = 
@@ -39,12 +37,6 @@ and env = addr StringMap.t
 (* Address *)
 and addr = int
 
-(* tests *)
-
-
-
-
-
 
 (* type operator *)
 type map = string StringMap.t
@@ -52,6 +44,11 @@ type map = string StringMap.t
 (* syntactic sugar *)
 let (==>) x y = (x, y)  (* tuple *)
 let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key value acc) map entries
+
+
+
+
+
 
 
 
@@ -67,14 +64,14 @@ let step (sigma: config): config =
 
   | (TmVar x, rho, s, kappa) ->
 
-| (TmApp (e0,e1), rho, s, kappa) ->
+  | (TmApp (e0,e1), rho, s, kappa) ->
 
 
-| (TmAbs lam, rho, s, C1(a, kappa)) ->
+  | (TmAbs lam, rho, s, C1(a, kappa)) ->
 
-| (TmAbs (x, e), rho, s, C2(a, kappa)) -> 
+  | (TmAbs (x, e), rho, s, C2(a, kappa)) -> 
 
-| _ -> failwith "Invalid configuration"
+  | _ -> failwith "Invalid configuration"
 
 
 
@@ -112,4 +109,3 @@ let evaluate (e: term): config list =
   collect step isFinal(inject e)
   
 (*　test *)
-
