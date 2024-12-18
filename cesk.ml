@@ -115,6 +115,15 @@ let result = evaluate term_test
 
 
 
+let rec string_of_term (t: term) =
+  match t with
+  | TmVar x -> x
+  | TmAbs (x, t) -> "λ" ^ x ^ "." ^ string_of_term t
+  | TmApp (t1, t2) -> "(" ^ string_of_term t1 ^ " " ^ string_of_term t2 ^ ")"
 
 
+let () = 
+  List.iter (fun (term_test, _, _) -> 
+    Printf.printf "State: %s\n" (string_of_term term_test)
+  ) result
 
