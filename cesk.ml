@@ -78,7 +78,6 @@ let step (sigma: config): config =
   | (TmAbs lam, rho, sigma_store, Ar(e, rho', kappa)) ->
       (e, rho', sigma_store, Fn(lam, rho, kappa)) 
 
-
   | (TmAbs lam, rho, sigma_store, Fn((x, e) , rho', kappa)) -> 
       let a' = alloc sigma_store in (e, rho'//[x ==> a'], sigma_store//[a' ==> Clo(lam, rho)], kappa)
   | _ -> failwith "Invalid configuration"
@@ -120,7 +119,6 @@ let rec string_of_term (t: term) =
   | TmVar x -> x
   | TmAbs (x, t) -> "λ" ^ x ^ "." ^ string_of_term t
   | TmApp (t1, t2) -> "(" ^ string_of_term t1 ^ " " ^ string_of_term t2 ^ ")"
-
 
 let () = 
   List.iter (fun (term_test, _, _) -> 
