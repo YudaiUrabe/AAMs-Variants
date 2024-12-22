@@ -94,3 +94,36 @@ let isFinal (state: config) : bool =
   match state with
     |(TmAbs _, _, _, Done) -> true
     | _ -> false
+
+
+(*　test 
+(λa.a)(λb.b) -> (λb.b)
+*)
+
+let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: config): config list =
+  if isFinal sigma_collect then
+    [sigma_collect]
+  else
+    sigma_collect :: collect f isFinal (f sigma_collect)
+
+let evaluate (e: term): config list =
+  collect step isFinal(inject e)
+
+let term_test = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
+
+let result = evaluate term_test
+
+
+
+let rec string_of_term (t: term) =
+  match t with
+  | TmVar x -> x
+  | TmAbs (x, t) -> "λ" ^ x ^ "." ^ string_of_term t
+  | TmApp (t1, t2) -> "(" ^ string_of_term t1 ^ " " ^ string_of_term t2 ^ ")"
+
+
+let () = 
+  List.iter (fun (term_test, _, _) -> 
+    Printf.printf "State: %s\n" (string_of_term term_test)
+  ) result
+
