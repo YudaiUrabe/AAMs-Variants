@@ -37,8 +37,6 @@ and cont =
 (* Address *)
 and addr = int
 
-(* tests *)
-
 
 
 (* type operator *)
