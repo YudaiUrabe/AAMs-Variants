@@ -58,13 +58,16 @@ let step (sigma: config): config =
   match sigma with
   | (TmVar x, rho, kappa) ->
       let Clo(lam, rho') = StringMap.find x rho in (TmAbs lam, rho', kappa)
+
   | (TmApp (f,e), rho, kappa) ->
       (f, rho, Ar(e, rho, kappa))
+
   | (TmAbs lam, rho, Ar(e, rho', kappa)) ->
       (e, rho', Fn(lam, rho, kappa)) 
+
   | (TmAbs lam, rho, Fn((x, e) , rho', kappa)) -> 
       (e,rho'//[x ==> Clo(lam, rho)], kappa)
-  | _ ->
+ | _ ->
       failwith "Invalid configuration"
 
 (* injection function 
@@ -85,9 +88,10 @@ let isFinal (sigma_state: config) : bool =
 (* collect *)
 let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: config): config list =
   if isFinal sigma_collect then
-    [sigma_collect]
+    [sigma_collect] 
   else
     sigma_collect :: collect f isFinal (f sigma_collect)
+
 
 (* evaluation function *)
 (* Create an initial state from the term e using "inject",
@@ -103,6 +107,7 @@ let evaluate (e: term): config list =
 *)
 let term_test = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
 
+
 let result = evaluate term_test
 
 (* auxiliary functions for this test *)
@@ -111,9 +116,3 @@ let rec string_of_term (t: term) =
   | TmVar x -> x
   | TmAbs (x, t) -> "λ" ^ x ^ "." ^ string_of_term t
   | TmApp (t1, t2) -> "(" ^ string_of_term t1 ^ " " ^ string_of_term t2 ^ ")"
-
-let () = 
-  List.iter (fun (term_test, _, _) -> 
-    Printf.printf "State: %s\n" (string_of_term term_test)
-  ) result
-
