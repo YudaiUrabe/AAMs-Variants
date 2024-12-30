@@ -23,6 +23,7 @@ type config = term * env * cont
 *)
 and d = Clo of lambda * env
 
+
 (* Environment
 is implemented as finite maps from variables to closures.
 *)
@@ -98,7 +99,6 @@ let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: co
 then apply "step" repeatedly until the final state is reached, saving all intermediate states in a list.*)
 let evaluate (e: term): config list =
   collect step isFinal(inject e)
-
 
 
 
