@@ -1,4 +1,3 @@
-(* Object Langugae -fine-graing CbV lambda calculus- *)
 (* Reference: "Liberating Effects with Rows and Handlers",
 "Foundations for Programming and Implementing Effect Handlers"(2021) *)
 
@@ -29,6 +28,7 @@ and handler =
 
 
 
+
 (* type operator *)
 type map = string StringMap.t
 
@@ -47,6 +47,8 @@ type config =
   | comp * val_env * cont
   | comp * val_env * cont * cont' (* Augmented the configuration space of CEK *)
 
+
+
 (* Value environments *)
 and val_env =
   | StringMap.empty
@@ -54,6 +56,7 @@ and val_env =
 
 (* Function Closures *)
 and d = Clo of val_env * lambda
+
 
 (* Values *)
 and cekvalue = 
@@ -76,7 +79,6 @@ and pure_cont =
   | pure_cont_frame :: pure_cont
 
 and pure_cont_frame = (val_env, x, comp)
-
 
 (* Hanlder Closures　*)
 and chi = (val_env, handler)
@@ -102,11 +104,10 @@ and chi = (val_env, handler)
 
 
 
-
 (* SEMANTICS of this machine *)
 
 (* IdentityContinuation *)
-let idCont = [([], (StringMap.empty, ~~~~))]
+let idCont = [([], (StringMap.empty, ReturnClause))]
 
 
 (* injection function M-INIT 
@@ -122,7 +123,7 @@ let inject (m:comp) : config =
 let interpret_value (tv: termvalue)(rho: val_env): cekvalue =
   match tv with
   | TmVar x -> (
-    match StringMap.find_opt x rho with
+    match StringMap.find_opt x rho with 
     | Some v -> v  (* Get the value of x under the environment rho *)
     | None -> failwith ("Unbound variable: " ^ x)  (* Error if the variable is not found in the environment *)
   )
@@ -142,7 +143,7 @@ let step (sigma: config): config =
         | Clo(rho', (x, M)) -> 
           (M, StringMap.add x w' rho', kappa)  (* M-APP *)
         | _ -> failwith "Application error: not a closure")
-
+ 
     | (TmApp(v,w), rho, kappa) ->
       let kappa' = interpret_value v rho in 
         (Return(w), rho, kappa' @ kappa) (* M-APPCONT *)
@@ -158,7 +159,7 @@ let step (sigma: config): config =
     | (Return V, rho, ([],(rho', H))::kappa) ->
         (match H with 
           | {return x -> M} -> 
-            (M, StringMap.add x (interpret_value V rho) rho'ちゃんと, kappa)  (* M-RETHANDLER *)
+            (M, StringMap.add x (interpret_value V rho) rho', kappa)  (* M-RETHANDLER *)
           | _ -> failwith "Handle error: invalid handler"
         )
     | (Return V, rho, []) ->
@@ -176,14 +177,4 @@ let step (sigma: config): config =
         (M, updated_rho, kappa) (* M-OP-HANDLE *)
       | _ -> 
           (Do(l, V), rho, kappa, kappa' @ [(s, (rho', H))]) (* M-OP-FORWARD *)
-   
-
-
-
-
-
-
-
-
-
-(*　test *)
+      
