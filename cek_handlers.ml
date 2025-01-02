@@ -47,8 +47,6 @@ type config =
   | comp * val_env * cont
   | comp * val_env * cont * cont' (* Augmented the configuration space of CEK *)
 
-
-
 (* Value environments *)
 and val_env =
   | StringMap.empty
@@ -102,13 +100,10 @@ and chi = (val_env, handler)
 
 
 
-
-
 (* SEMANTICS of this machine *)
 
 (* IdentityContinuation *)
 let idCont = [([], (StringMap.empty, ReturnClause))]
-
 
 (* injection function M-INIT 
 map a computation term into an machine conficuration
@@ -123,7 +118,7 @@ let inject (m:comp) : config =
 let interpret_value (tv: termvalue)(rho: val_env): cekvalue =
   match tv with
   | TmVar x -> (
-    match StringMap.find_opt x rho with 
+    match StringMap.find_opt x rho with
     | Some v -> v  (* Get the value of x under the environment rho *)
     | None -> failwith ("Unbound variable: " ^ x)  (* Error if the variable is not found in the environment *)
   )
@@ -143,7 +138,6 @@ let step (sigma: config): config =
         | Clo(rho', (x, M)) -> 
           (M, StringMap.add x w' rho', kappa)  (* M-APP *)
         | _ -> failwith "Application error: not a closure")
- 
     | (TmApp(v,w), rho, kappa) ->
       let kappa' = interpret_value v rho in 
         (Return(w), rho, kappa' @ kappa) (* M-APPCONT *)
@@ -177,4 +171,4 @@ let step (sigma: config): config =
         (M, updated_rho, kappa) (* M-OP-HANDLE *)
       | _ -> 
           (Do(l, V), rho, kappa, kappa' @ [(s, (rho', H))]) (* M-OP-FORWARD *)
-      
+
