@@ -1,4 +1,4 @@
-(* Reference: "Systematic abstraction of abstract machines" §4*)
+(* Reference: "Systematic abstraction of abstract machines" §4 *)
 
 module StringMap = Map.Make(String)
 
@@ -108,4 +108,7 @@ let isFinal (sigma_state: config) : bool =
 let evaluate (e: term): config list =
   collect step isFinal(inject e)
   
-(*　test *)
+
+
+
+
