@@ -108,7 +108,6 @@ let isFinal (sigma_state: config) : bool =
 let evaluate (e: term): config list =
   collect step isFinal(inject e)
   
-
-
+(*　test *)
 
 
