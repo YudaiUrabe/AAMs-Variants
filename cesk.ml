@@ -24,6 +24,7 @@ and env = addr StringMap.t
 
 and storable = Clo of lambda * env
 
+
 (* store
  is a finite map from address to storable values *)
  and store =  storable AddrMap.t
@@ -78,7 +79,6 @@ let step (sigma: config): config =
   | (TmAbs lam, rho, sigma_store, Ar(e, rho', kappa)) ->
       (e, rho', sigma_store, Fn(lam, rho, kappa)) 
 
-
   | (TmAbs lam, rho, sigma_store, Fn((x, e) , rho', kappa)) -> 
       let a' = alloc sigma_store in (e, rho'//[x ==> a'], sigma_store//[a' ==> Clo(lam, rho)], kappa)
   | _ -> failwith "Invalid configuration"
@@ -87,7 +87,7 @@ let step (sigma: config): config =
 (* injection function 
 combines the term with the empty env, store and continuation*)
 let inject (e:term) : config =
-  let (rho0, s0) = (StringMap.empty, StringMap.empty) in (e, rho0, s0, Done)
+ (e, StringMap.empty, StringMap.empty, Done)
 
 (* isFinal *)
 let isFinal (state: config) : bool =
@@ -95,3 +95,27 @@ let isFinal (state: config) : bool =
     |(TmAbs _, _, _, Done) -> true
     | _ -> false
 
+
+(*　test 
+(λa.a)(λb.b) -> (λb.b)
+*)
+
+let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: config): config list =
+  if isFinal sigma_collect then
+    [sigma_collect]
+  else
+    sigma_collect :: collect f isFinal (f sigma_collect)
+
+let evaluate (e: term): config list =
+  collect step isFinal(inject e)
+
+(* test *)
+  let term_test = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
+
+let result = evaluate term_test
+
+let rec string_of_term (t: term) =
+  match t with
+  | TmVar x -> x
+  | TmAbs (x, t) -> "λ" ^ x ^ "." ^ string_of_term t
+  | TmApp (t1, t2) -> "(" ^ string_of_term t1 ^ " " ^ string_of_term t2 ^ ")"
