@@ -109,6 +109,9 @@ let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: co
 let evaluate (e: term): config list =
   collect step isFinal(inject e)
 
+
+
+  
 (* test *)
   let term_test = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
 
