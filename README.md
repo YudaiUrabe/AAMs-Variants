@@ -1,9 +1,9 @@
 ## Static Analysis for Programs with Effect Handlers by Abstracting Abstract Machines
 ----
 
-* `cek.ml`:
+* `cek.ml`: Done
 
-* `cesk.ml`:
+* `cesk.ml`: Done
 
 * `cesk*.ml`:
 
