@@ -22,14 +22,14 @@ type config = term * env * store * cont * time
 and storable = 
   | Clo of lambda * env
   | Cont of cont
-(* 2つ前のやつでこう書いている；この最後の行ってOCamlのコードとして正しいかしら． 少し気になっただけかもだが，Cloってこんなふうにofで定義してたっけ．*)
+
 
 (* Environment *)
 and env = addr StringMap.t
 
 (* store *)
 and store =  storable AddrMap.t
-ここをちゃんと実装
+
 
 (* Continuation *)
 and cont = 
@@ -39,11 +39,11 @@ and cont =
 
 (* Time *)
 and time = int
-この実装でいいの？
+
 
 (* Address *)
 and addr = int
-この実装でいいの？
+
 
   (* type P *)
 
@@ -82,7 +82,7 @@ let step (sigma: config): ~~~~ =
 
   | _ -> failwith "Invalid configuration"
 
-(* ς@の実装は大丈夫か？ *)
+
 
 
 
@@ -94,13 +94,3 @@ let step (sigma: config): ~~~~ =
 
 (* search *)
 
-
-  (* 
-goal: to construct a function, CEK_hat
-
-abstract state: Σ_hat
-abstract state transition: |->CEK_hat
-abstraction map: α: Σ →  Σ_hat 
-abstract evaluation function: CEK_hat(e)
-
-*)
