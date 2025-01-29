@@ -122,4 +122,3 @@ let () =
   List.iter (fun (term_test, _, _, _) -> 
     Printf.printf "State: %s\n" (string_of_term term_test)
   ) result
-
