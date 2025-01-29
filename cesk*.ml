@@ -29,7 +29,6 @@ and cont =
   | Ar of term * env * addr
   | Fn of lambda * env * addr
 
-
 and storable = 
   | Clo of lambda * env
   | Cont of cont
@@ -80,13 +79,10 @@ let step (sigma: config): config =
 
   | (TmAbs lam, rho, s, Fn((x, e) , rho', a)) -> 
     let Cont kappa = StringMap.find a s in
-
     let a' = alloc s in 
       (e, rho'//[x ==> a'], s//[a' ==> Clo(lam, rho)], kappa)
 
   | _ -> failwith "Invalid configuration"
-
-
 
 
 (* alloc function *)
