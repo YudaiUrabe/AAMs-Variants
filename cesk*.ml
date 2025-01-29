@@ -29,12 +29,10 @@ and cont =
   | Ar of term * env * addr
   | Fn of lambda * env * addr
 
-  今回は，store-allocated continuationだってさ
 
 and storable = 
   | Clo of lambda * env
   | Cont of cont
-(* この最後の行ってOCamlのコードとして正しいかしら． 少し気になっただけかもだが，Cloってこんなふうにofで定義してたっけ．*)
 
 (* Environment *)
 and env = addr StringMap.t
@@ -70,7 +68,6 @@ let step (sigma: config): config =
   | (TmVar x, rho, s, kappa) ->
     let Clo(lam, rho') = StringMap.find x rho in
      (TmAbs lam, rho', s, kappa)
-    (* CESKと同じだが，ここって，String Mapでいいんかいな？あと，Clo＝の右辺のやつ絶対うまく実装できていない気がする．．．StringMap.find x rho でええのか？ *)
 
   | (TmApp (f,e), rho, s, kappa) ->
       let a' = alloc s in
@@ -83,7 +80,7 @@ let step (sigma: config): config =
 
   | (TmAbs lam, rho, s, Fn((x, e) , rho', a)) -> 
     let Cont kappa = StringMap.find a s in
-    (* CESKと同じだが，ここって，String Mapでいいんかいな？この問題を解決したら結構な箇所を改善できそうかも *)
+
     let a' = alloc s in 
       (e, rho'//[x ==> a'], s//[a' ==> Clo(lam, rho)], kappa)
 
@@ -97,10 +94,3 @@ let alloc (s: store): addr =
   let keys = AddrMap.fold (fun key _ acc -> key :: acc) s [] in
   let max_key = List.fold_left max 0 keys in
   max_key + 1
-CESKと全く同じだが，ここの実装自信がない
-(* sから全てのキーを取り出して，そのリストから最大のキーを求め，その最大のキーに１を加えたものをアドレスとして返す *)
-コレクトやevalの代わりかしら？
-
-
-
-(*　test *)
