@@ -103,3 +103,24 @@ let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: co
 let evaluate (e: term): config list =
   collect step isFinal(inject e)
 
+
+(* test 
+(λa.a)(λb.b) -> (λb.b)　*)
+let term_test = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
+
+let result = evaluate term_test
+
+let rec string_of_term (t: term) =
+  match t with
+  | TmVar x -> x
+  | TmAbs (x, t) -> "λ" ^ x ^ "." ^ string_of_term t
+  | TmApp (t1, t2) -> "(" ^ string_of_term t1 ^ " " ^ string_of_term t2 ^ ")"
+
+(* output *)
+let () = 
+  List.iter (fun (term_test, _, _, _) -> 
+    Printf.printf "State: %s\n" (string_of_term term_test)
+  ) result
+
+
+ 
