@@ -62,13 +62,12 @@ let step (sigma: config): config =
     | Thunk (e, rho') -> 
       (e, rho', s, C1 (StringMap.find x rho, kappa))
     | Clo (lam, rho') -> 
-      (TmAbs lam, rho', s, kappa)) (* ここってTmAbsってlamの前に書かなあかんの？*)
-    (* match内matchって，括弧をつけなくてはならないの？？？　rho(x)はStringMap.find x rho で表している． *)
+      (TmAbs lam, rho', s, kappa)) 
   | (TmApp (e0,e1), rho, s, kappa) ->
     let a = StringMap.cardinal s in
     let s' = s // [a ==> Thunk(e1, rho)] in
     (e0, rho, s', C2 (a, kappa))
-(* この上の実装自信ない．．．StringMap.cardinal ってなんだよ． e0 とe1ってこれであってる？*)
+
   | (TmAbs lam, rho, s, C1(a, kappa)) ->
     (lam, rho, s // [a ==> Clo(lam, rho)], kappa)
   | (TmAbs (x, e), rho, s, C2(a, kappa)) -> 
@@ -80,7 +79,6 @@ let step (sigma: config): config =
   let keys = AddrMap.fold (fun key _ acc -> key :: acc) s [] in
   let max_key = List.fold_left max 0 keys in
   max_key + 1
-(* CESKと全く同じ実装だが，元々の方が自信がないからな．．． *)
 
 (* injection function *)
 let inject (e:term) : config =
@@ -106,16 +104,3 @@ let evaluate (e: term): config list =
   collect step isFinal(inject e)
 
   
-
-
-(*　test *)
-
-
-(* 
-次のアクションアイテム2025/01/22：　遷移関数ほとんどオッケーだと思っているけど，遷移関数以外にもところどころ赤線が出てしまっているよね（多分，型の問題な気がするから，今回のコンフィギュとか各要素を見ながら見直したら解決しそうな気もする．）．この赤線をなくすのがお仕事かな．あとは，日本語を全部消せるようにして，かつ，テストを通して確認する．
-
-この機会ってロジック寄りなの？？？ウィキによると，The Krivine machine explains how to compute a recursive function.だってよ
-
-type k :-> v = Data.Map.Map k vに相当するものが必要かもしれん？構文定義にか？？どこで使ったやつやろか　→　いらんのっちゃう？環境の定義のことだろう多分．
-
-*)
