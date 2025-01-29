@@ -5,23 +5,23 @@
 
 * `cesk.ml`: Done
 
-* `cesk*.ml`:
+* `cesk*.ml`: To be tested
 
-* `time-stapmed cesk*.ml`:
+* `time-stapmed cesk*.ml`: temp
 
-* `abstract time-stapmed cesk*.ml`:
+* `abstract time-stapmed cesk*.ml`: temp
 
-* `krivine.ml`:
+* `krivine.ml`: To be tested
 
 
 
-* `cek_handlers.ml`:
+* `cek_handlers.ml`: To be tested
 
 * `cesk_handlers.ml`:
 
 * `cesk*_handlers.ml`:
 
-* `time-stapmed cesk*_handlers.ml`:
+* `time-stapmed cesk*_handlers.ml`: 
 
 * `abstract time-stapmed cesk*_handlers.ml`:
 
