@@ -17,9 +17,9 @@
 
 * `cek_handlers.ml`: To be tested
 
-* `cesk_handlers.ml`:
+* `cesk_handlers.ml`: temp
 
-* `cesk*_handlers.ml`:
+* `cesk*_handlers.ml`: temp
 
 * `time-stapmed cesk*_handlers.ml`: 
 
@@ -33,4 +33,5 @@ International Conference on Functional Programming (ICFP ’10). ACM, New York, 
 22, 4-5 (2012), 705-746.
 * Daniel Hillerström and Sam Lindley. Liberating effects with rows and handlers.
 In TyDe@ICFP, pages 15–27. ACM, 2016.
+* Daniel Hillerström. An Abstract Machine Semantics for Handlers, Mar 2017.
 * Daniel Hillerström. Foundations for Programming and Implementing Effect Handlers. PhD dissertation, School of Informatics, The University of Edinburgh, 2021. 
