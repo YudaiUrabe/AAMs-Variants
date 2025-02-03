@@ -45,12 +45,6 @@ type config =
   | comp * val_env * cont
   | comp * val_env * cont * cont' (* Augmented the configuration space of CEK *)
 
-
-(* Value environments *)
-and val_env =
-  | StringMap.empty
-  | val_env // [x ==> cekvalue]
-
 (* Function Closures *)
 and d = Clo of val_env * lambda
 
@@ -59,6 +53,11 @@ and d = Clo of val_env * lambda
 and cekvalue = 
   | d
   | cont
+
+(* Value environments *)
+and val_env =
+  | StringMap.empty
+  | val_env // [x ==> cekvalue]
 
 
 (* (Captured) Continuations *)
@@ -98,9 +97,11 @@ and chi = (val_env, handler)
 
 
 
+
 (* SEMANTICS of this machine *)
 
-(* IdentityContinuation *)
+(* Identity Continuation *)
+let idCont = [([], (StringMap.empty, ReturnClause(x, Return (TmVar x))))]
 
 
 (* injection function M-INIT 
@@ -124,7 +125,6 @@ let interpret_value (tv: termvalue)(rho: val_env): cekvalue =
 
 
 
-
 (* transition function *)
 (* ref."Liberating Effects with Rows and Handlers", FIg.9 *)
 let step (sigma: config): config = 
@@ -134,25 +134,25 @@ let step (sigma: config): config =
       let w' = interpret_value w rho in
         (match v' with
         | Clo(rho', (x, M)) -> 
-          (M, StringMap.add x w' rho'~~, kappa)  (* M-APP *)
+          (M, StringMap.add x w' rho', kappa)  (* M-APP *)
         | _ -> failwith "Application error: not a closure")
-
     | (TmApp(v,w), rho, kappa) ->
       let kappa' = interpret_value v rho in 
         (Return(w), rho, kappa' @ kappa) (* M-APPCONT *)
-
     
+
+
     | (Let(x,M,N), rho, (s,chi)::kappa) ->
         (M, rho, ((rho, x, N) :: s, chi) :: kappa) (* M-LET *)
     | (Handle(M, H), rho, kappa) ->
         (M, rho, ([],(rho, H))::kappa) (* M-HANDLE *)
 
     | (Return V, rho, ((rho', x, N)::s, chi)::kappa) ->
-         (N, StringMap.add x (interpret_value V rho) rho'~~, (s,chi)::kappa) (* M-RETCONT *)
+         (N, StringMap.add x (interpret_value V rho) rho', (s,chi)::kappa) (* M-RETCONT *)
     | (Return V, rho, ([],(rho', H))::kappa) ->
         (match H with 
           | {return x -> M} -> 
-            (M, StringMap.add x (interpret_value V rho) rho'~~, kappa)  (* M-RETHANDLER *)
+            (M, StringMap.add x (interpret_value V rho) rho', kappa)  (* M-RETHANDLER *)
           | _ -> failwith "Handle error: invalid handler"
         )
     | (Return V, rho, []) ->
@@ -170,5 +170,44 @@ let step (sigma: config): config =
         (M, updated_rho, kappa) (* M-OP-HANDLE *)
       | _ -> 
           (Do(l, V), rho, kappa, kappa' @ [(s, (rho', H))]) (* M-OP-FORWARD *)
+
+
+
+(* isFinal *)
+let isFinal (sigma_state: config) : bool =
+  match sigma_state with
+    |(Return _, rho, Done) -> true
+    | _ -> false
+
+
+
+(* collect *)
+let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: config): config list =
+  if isFinal sigma_collect then
+    [sigma_collect]
+  else
+    sigma_collect :: collect f isFinal (f sigma_collect)
+
+
+(* evaluation function *)
+let evaluate (M: comp): config list =
+  collect step isFinal(inject M)
+
+
+(*　test *)
+let term_test =
+
+let result = evaluate term_test
+
+(* auxiliary function *)
+let rec string_of_term (M: comp) =
+  match M with
+  |~~~~~
+
+(* output *)
+let () = 
+  List.iter (fun (term_test, _, _) -> 
+    Printf.printf "State: %s\n" (string_of_term term_test)
+  ) result
 
 
