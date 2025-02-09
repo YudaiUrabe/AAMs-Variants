@@ -97,23 +97,48 @@ let evaluate (e: term): config list =
 
 
 
-(*　test 
+(*　test1 
 (λa.a)(λb.b) -> (λb.b)
 *)
 let term_test = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
 
-let result = evaluate term_test
+(* test2
+suc = λnsz.s(nsz)
+1 = λsz.sz
+suc 1 -> λsz.s(sz) = 2
+ *)
+ let term_test2 = TmApp(
+                    TmAbs("n", TmAbs ("s",TmAbs ("z", TmApp (TmVar "s", TmApp(TmApp(TmVar "n", TmVar "s"), TmVar "z"))))),
+                    TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))))
 
-(* auxiliary functions for this test *)
+let result = evaluate term_test2
+
+(* auxiliary function for this test *)
 let rec string_of_term (t: term) =
   match t with
   | TmVar x -> x
   | TmAbs (x, t) -> "λ" ^ x ^ "." ^ string_of_term t
   | TmApp (t1, t2) -> "(" ^ string_of_term t1 ^ " " ^ string_of_term t2 ^ ")"
+let rec string_of_env (env: env) =
+  let bindings = StringMap.bindings env in
+  let binding_to_string (var, Clo ((x, t), _)) =
+      var ^ " ↦ λ" ^ x ^ "." ^ string_of_term t
+    in
+    "{" ^ String.concat ", " (List.map binding_to_string bindings) ^ "}"
+let rec string_of_cont (cont: cont) =
+  match cont with
+  | Done -> "Done"
+  | Ar (t, _, k) -> "Ar(" ^ string_of_term t ^ ", " ^ string_of_cont k ^ ")"
+  | Fn ((x, t), _, k) -> "Fn(λ" ^ x ^ "." ^ string_of_term t ^ ", " ^ string_of_cont k ^ ")"
+let string_of_state (t: term) (env: env) (cont: cont) =
+  "{" ^
+   string_of_term t ^ ", " ^
+   string_of_env env ^ ", " ^
+   string_of_cont cont ^
+  "}"
 
 (* output *)
 let () = 
-  List.iter (fun (term_test, _, _) -> 
-    Printf.printf "State: %s\n" (string_of_term term_test)
+  List.iter (fun (term_test, env, cont) -> 
+    Printf.printf "State: %s\n" (string_of_state term_test env cont)
   ) result
-
