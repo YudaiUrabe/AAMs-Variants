@@ -65,7 +65,6 @@ let (///) map entries = List.fold_left(fun acc(key, value) -> AddrMap.add key va
   let max_key = List.fold_left max 0 keys in
   max_key + 1
 
-
 (* transition relation for the CESK machine *)
 let step (sigma: config): config = 
   match sigma with
@@ -109,7 +108,15 @@ let evaluate (e: term): config list =
 (λa.a)(λb.b) -> (λb.b)　*)
 let term_test = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
 
-let result = evaluate term_test
+(* test2
+suc = λnsz.s(nsz)
+1 = λsz.sz
+suc 1 -> λsz.s(sz) = 2
+ *)
+ let term_test2 = TmApp(
+                    TmAbs("n", TmAbs ("s",TmAbs ("z", TmApp (TmVar "s", TmApp(TmApp(TmVar "n", TmVar "s"), TmVar "z"))))),
+                    TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))))
+let result = evaluate term_test2
 
 let rec string_of_term (t: term) =
   match t with
@@ -122,3 +129,4 @@ let () =
   List.iter (fun (term_test, _, _, _) -> 
     Printf.printf "State: %s\n" (string_of_term term_test)
   ) result
+
