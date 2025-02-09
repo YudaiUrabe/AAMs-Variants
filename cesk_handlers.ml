@@ -25,6 +25,7 @@ and comp =
 and handler = 
   | ReturnClause of var * comp
   | OperationClause of label * var * string * comp * handler
+(* 元のCEKに合わせて対象言語の構文定義も修正しよう 　　？？*)
 
 
 (* type operator *)
@@ -41,7 +42,7 @@ let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key v
 (* configuration *)
 type config = 
   | comp * val_env * store * cont
-  | comp * val_env * store * cont * cont' (* Augmented the configuration space *)
+  | comp * val_env * store * cont * cont'
 
 (* Function Closures *)
 and d = Clo of val_env * lambda
@@ -52,13 +53,12 @@ and AMvalue =
   | cont
 
 (* Value environments *)
-and val_env = AMvalue StringMap.t
-
-and storable = Clo of termvalue * env
+and val_env = addr StringMap.t
+(* このtはちゃんと変数って表せてるんやろか *)
 
 (* store
- is a finite map from address to storable values *)
- and store =  storable AddrMap.t
+ is a finite map from address to values *)
+ and store =  AMvalue AddrMap.t
 
 (* (Captured) Continuations *)
 and cont = 
@@ -72,17 +72,14 @@ and pure_cont =
   | pure_cont_frame :: pure_cont
 
 and pure_cont_frame = (val_env, x, comp)
+(* 思ったんやけど，型フレーム？(contとか)で定義しているのと，それによく使われる変数（xとか）の区別をちゃんとつけていないと！ *)
 
 (* Hanlder Closures *)
 and chi = (val_env, handler)
+(* ここのハンドラって，対象言語の定義の方だから，実装の方で工夫しないといけんでしょ．．． *)
 
 (* Address *)
 and addr = int
-
-
-
-
-
 
 
 
@@ -101,14 +98,11 @@ and addr = int
 
 (* Identity Continuation *)
 let idCont = [([], (StringMap.empty, ReturnClause(x, Return (TmVar x))))]
+(* 今回もCEKハンドラと同様にこれでいいの？ *)
 
-(* injection function M-INIT 
-map a computation term into an machine configuration
-*)
+(* injection function M-INIT *)
 let inject (m:comp) : config =
   (m, StringMap.empty, AddrMap.empty, idCont)
-
-
 
 
 (* Interpretation function for values *)
@@ -120,6 +114,7 @@ let interpret_value (tv: termvalue)(rho: val_env): AMvalue =
     | None -> failwith ("Unbound variable: " ^ x) 
   )
   | TmAbs lam -> Clo(rho, lam)
+(* この関数って，CESKに変換したことで変えなくてはいけないのかな？ *)
 
 
 
@@ -152,6 +147,7 @@ let isFinal (sigma_state: config) : bool =
   match sigma_state with
     |(Return _, rho, s, Done) -> true
     | _ -> false
+(* コンフィギュを直した *)
 
 (* collect *)
 let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: config): config list =
@@ -159,10 +155,15 @@ let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: co
     [sigma_collect]
   else
     sigma_collect :: collect f isFinal (f sigma_collect)
+(* 元のままでいいと思う *)
 
 (* evaluation function *)
 let evaluate (M: comp): config list =
   collect step isFinal(inject M)
+(* これ，入力はコンピュテーションでいいのかな？inj関数もそうだしいいんじゃないか *)
+
+
+
 
 (*　test *)
 let term_test =
@@ -179,3 +180,9 @@ let () =
   List.iter (fun (term_test, _, _) -> 
     Printf.printf "State: %s\n" (string_of_term term_test)
   ) result
+(* そのままで大丈夫か？ *)
+
+
+
+次のアクションアイテム：
+構文はおそらく？これでいいから，Interpretation functionがこの機械に対応しているか（他もコンフィギュとかアドレスとか整合性が取れているか意識しながら．），遷移関数を完成させる．そして，補助関数とともに評価関数を完成させ，テストの実行をする．

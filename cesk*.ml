@@ -29,6 +29,7 @@ and cont =
   | Ar of term * env * addr
   | Fn of lambda * env * addr
 
+
 and storable = 
   | Clo of lambda * env
   | Cont of cont
@@ -42,7 +43,6 @@ and env = addr StringMap.t
 (* Address *)
 and addr = int
 
-(* tests *)
 
 
 
@@ -67,7 +67,6 @@ let step (sigma: config): config =
   | (TmVar x, rho, s, kappa) ->
     let Clo(lam, rho') = StringMap.find x rho in
      (TmAbs lam, rho', s, kappa)
-
   | (TmApp (f,e), rho, s, kappa) ->
       let a' = alloc s in
       let s' = s//[a' ==> Cont kappa] in
@@ -85,8 +84,36 @@ let step (sigma: config): config =
   | _ -> failwith "Invalid configuration"
 
 
+
+
 (* alloc function *)
 let alloc (s: store): addr =
   let keys = AddrMap.fold (fun key _ acc -> key :: acc) s [] in
   let max_key = List.fold_left max 0 keys in
   max_key + 1
+
+
+(* injection function *)
+let inject (e:term) : config =
+  (e, StringMap.empty, AddrMap.empty, Done)
+ 
+(* isFinal *)
+ let isFinal (state: config) : bool =
+   match state with
+     |(TmAbs _, _, _, Done) -> true
+     | _ -> false
+ 
+ (* collect *)
+ let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: config): config list =
+   if isFinal sigma_collect then
+     [sigma_collect]
+   else
+     sigma_collect :: collect f isFinal (f sigma_collect)
+
+(* evaluation function *)
+let evaluate (e: term): config list =
+  collect step isFinal(inject e)
+
+
+(*　test *)
+
