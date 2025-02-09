@@ -64,7 +64,6 @@ let (///) map entries = List.fold_left(fun acc(key, value) -> AddrMap.add key va
   let keys = AddrMap.fold (fun key _ acc -> key :: acc) s [] in
   let max_key = List.fold_left max 0 keys in
   max_key + 1
-(* ここのアロケーション関数の実装面の理解まだ足りていないような．．． *)
 
 (* transition relation for the CESK machine *)
 let step (sigma: config): config = 
@@ -73,12 +72,10 @@ let step (sigma: config): config =
     let addr = StringMap.find x rho in (* (ρ!x) *)
     let Clo(lam, rho') = AddrMap.find addr sigma_store in
      (TmAbs lam, rho', sigma_store, kappa)
-(* この上の実装，多分あっているんだが，OCamlの話かもだけど，なんでこれでうまくいくんだろうね．Clo inみたいなのってどうやって処理するんや？ *)
   | (TmApp (f,e), rho, sigma_store, kappa) ->
       (f, rho, sigma_store, Ar(e, rho, kappa))
   | (TmAbs lam, rho, sigma_store, Ar(e, rho', kappa)) ->
       (e, rho', sigma_store, Fn(lam, rho, kappa)) 
-(* 引数を評価するため継続を展開??? *)
   | (TmAbs lam, rho, sigma_store, Fn((x, e) , rho', kappa)) -> 
       let a' = alloc sigma_store 
       in (e, rho'//[x ==> a'], sigma_store///[a' ==> Clo(lam, rho)], kappa)
@@ -119,7 +116,7 @@ suc 1 -> λsz.s(sz) = 2
  let term_test2 = TmApp(
                     TmAbs("n", TmAbs ("s",TmAbs ("z", TmApp (TmVar "s", TmApp(TmApp(TmVar "n", TmVar "s"), TmVar "z"))))),
                     TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))))
-(* このテストちゃんと通過できているか？？？Storeもちゃんと出力されるように，テストの出力関数も変えなくては，，， *)
+
 let result = evaluate term_test2
 
 let rec string_of_term (t: term) =
@@ -133,54 +130,3 @@ let () =
   List.iter (fun (term_test, _, _, _) -> 
     Printf.printf "State: %s\n" (string_of_term term_test)
   ) result
-
-
-  
-  次開いた時にテストを通した方が良いでしょう2025/01/22
-→　2025/01/29
-  （状態遷移関数が肝だろうね）
-  ステップの特にcloが関係するところを治す，alloc funcの確認　？
-  一応テストを通した．　次は，理解を深めて上の日本語を消し去る（あと，この下のコメントも片づける）
-  テストは通りそう？だが，出力を環境とストアも意識してちゃんと変えないとね2025/02/9
-
-
-  
-
-(*
-
-  (* 元々はこうなっていたけど変えた，let inject (e:term) : config =
-    let (rho0, s0) = (StringMap.empty, StringMap.empty) in (e, rho0, s0, Done) *)
-
-      List.iter (fun (term_test, _, _, _) -> の箇所で，組の個数をちゃんと変えた．
-
-CESKでは環境と閉包が相互再起ではない？
-
-ストリングマップは，連想配列として動作する？？？
-　こいつを理解したら，実装も進みそうな予感がしている．
-
-Farg(term, env, cont)は，関数を受け取り，その関数を，termをenvのもとで評価した結果に適用し，
-その結果を継続計算contに渡す継続計算を表す　　みたい
-
-envは，  クロージャの代わりにアドレスに飛ばすんやね
-
-なんで，injectのところの二つ目のs０に赤線が引かれるんやろね．
-
-あれ，ここではStorableが値なのかしら？
-
-StringMap.find x rhoとかAddrMap.find addr sigma_storeとかAddrMap.findみたいなやつの使い方がいまいちピンときていないのかも．
-    (* ここって，String Mapでいいんかいな？あと，Clo＝の右辺のやつ絶対うまく実装できていない気がする．．．StringMap.find x rho でええのか？ *)と思っていた
-
-
-allocの実装に自信がないので，AAMや抽象機械の仕組みを理解した上で再度確認する．
-Prof. G.Weiはevalやcollectを書いていたけど，ここでは不要なのかしら？
-allocは，sから全てのキーを取り出して，そのリストから最大のキーを求め，その最大のキーに１を加えたものをアドレスとして返す
-  こいつが，コレクトやevalの代わりかしら？　こいつが何をしているのがちゃんと理解せよ！！！
-
-(* 変数の処理：環境からアドレスを取得し、ストアからそのアドレスを参照する *)
-(* アプリケーションの処理：関数部分の項をそのまま次の評価に渡し、引数を評価するために新しい継続を作成 *)
-(* ラムダ式の処理：ラムダ式が関数として適用されるのを待つ *)
-    (* 関数適用を行う場合、束縛の更新 *)
-
-*)
-
-(* 閉包はないのかしら，いや呼称しないだけかもで，storableがCEKにおける閉包の代わりな気がする *)
