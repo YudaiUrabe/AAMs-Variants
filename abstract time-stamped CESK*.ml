@@ -1,4 +1,4 @@
-(* Object Langugae -untyped lambda calculus(CbV)- *)
+(* Reference: "Systematic abstraction of abstract machines" §2.9 *)
 
 module StringMap = Map.Make(String)
 module AddrMap = Map.Make(Int)
@@ -11,8 +11,6 @@ and term =
   | TmAbs of lambda
   | TmApp of term * term
 
-
-(* abstract time-stamped CESK* *)
 
 (* SYNTAX of abstract time-stamped CESK* machine *)
 
@@ -28,7 +26,7 @@ and storable =
 and env = addr StringMap.t
 
 (* store *)
-and store =  storable AddrMap.t
+and store =  
 
 
 (* Continuation *)
@@ -45,12 +43,8 @@ and time = int
 and addr = int
 
 
-  (* type P *)
 
-
-
-(* tests *)
-
+(* type P *)
 
 
 
@@ -62,12 +56,17 @@ let (==>) x y = (x, y)  (* tuple *)
 let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key value acc) map entries
 
 
+(* SEMANTICS of abstract time-stamped CESK* machine *)
+
 
 (* Lattice *)
 
 
 
 
+(* alloc function *)
+
+(* tick function *)
 
 (* transition relation *)
 let step (sigma: config): ~~~~ = 
@@ -86,6 +85,7 @@ let step (sigma: config): ~~~~ =
 
 
 
+
 (* aval *)
 
 (* explore *)
@@ -93,4 +93,10 @@ let step (sigma: config): ~~~~ =
 (* ∈ *)
 
 (* search *)
+
+(* injection function *)
+let inject (e:term) : config =
+  (e, StringMap.empty, AddrMap.empty, Done, 0)
+
+(* test *)
 
