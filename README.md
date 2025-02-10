@@ -5,7 +5,7 @@
 
 * `cesk.ml`: Done
 
-* `cesk*.ml`: To be tested
+* `cesk*.ml`: More refinement needed for the transition function
 
 * `time-stapmed cesk*.ml`: temp
 
@@ -17,13 +17,13 @@
 
 * `cek_handlers.ml`: To be tested
 
-* `cesk_handlers.ml`: temp
+* `cesk_handlers.ml`: More refinement needed for the transition function
 
 * `cesk*_handlers.ml`: temp
 
-* `time-stapmed cesk*_handlers.ml`: 
+* `time-stapmed cesk*_handlers.ml`: temp
 
-* `abstract time-stapmed cesk*_handlers.ml`:
+* `abstract time-stapmed cesk*_handlers.ml`: temp
 
 
  REFERENCES:
