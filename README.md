@@ -11,9 +11,8 @@
 
 * `abstract time-stapmed cesk*.ml`: temp
 
-* `krivine.ml`: To be tested
-
-
+* (`krivine.ml`: To be tested)
+---
 
 * `cek_handlers.ml`: To be tested
 
