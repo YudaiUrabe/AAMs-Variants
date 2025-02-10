@@ -25,7 +25,7 @@ and comp =
 and handler = 
   | ReturnClause of var * comp
   | OperationClause of label * var * string * comp * handler
-(* 元のCEKに合わせて対象言語の構文定義も修正しよう 　どういう意図で書いたっけ？？*)
+
 
 
 (* type operator *)
@@ -54,38 +54,36 @@ and AMvalue =
 
 (* Value environments *)
 and val_env = AMvalue StringMap.t
-(* このtはちゃんと変数って表せてるんやろか *)
+
 
 and storable = 
   | AMVal of AMvalue
   | PureCont of pure_cont
-(* ここマジでちゃんとしないと *)
+
 
 (* store*)
  and store =  storable AddrMap.t
 
 
- この下の継続周りが再帰しないようにアドレスに．．．
+
 
 (* (Captured) Continuations *)
 and cont = 
   | Done
   | cont_frame :: addr
-(* 再帰しないようにアドレスに変えた *)
+
 
 and cont_frame = (pure_cont, chi)
 
 and pure_cont = 
   | Done
   | pure_cont_frame :: addr
-(* 再帰しないようにアドレスに変えた *)
+
 
 and pure_cont_frame = (val_env, x, comp)
-(* 思ったんやけど，型フレーム？(contとか)で定義しているのと，それによく使われる変数（xとか）の区別をちゃんとつけていないと！ *)
 
 (* Hanlder Closures *)
 and chi = (val_env, handler)
-(* ここのハンドラって，対象言語の定義の方だから，実装の方で工夫しないといけんでしょ．．． *)
 
 (* Address *)
 and addr = int
@@ -104,14 +102,12 @@ and addr = int
 
 (* Identity Continuation *)
 let idCont = 
-(* これもアドレスに変えないといけないかも？ *)
 
 (* injection function M-INIT 
 map a computation term into an machine configuration
 *)
 let inject (m:comp) : config =
   (m, StringMap.empty, AddrMap.empty, 0)
-(* 飛んでいくコンフィギュを変えよう  Storeと継続（特に前者）ほんまにこれでええか？？？ *)
 
 
 
@@ -149,7 +145,6 @@ let isFinal (sigma_state: config) : bool =
   match sigma_state with
     |(Return _, rho, s, Done) -> true
     | _ -> false
-(* コンフィギュを直した *)
 
 (* collect *)
 let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: config): config list =
@@ -157,12 +152,10 @@ let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: co
     [sigma_collect]
   else
     sigma_collect :: collect f isFinal (f sigma_collect)
-(* 元のままでいいと思う *)
 
 (* evaluation function *)
 let evaluate (M: comp): config list =
   collect step isFinal(inject M)
-(* これ，入力はコンピュテーションでいいのかな？inj関数もそうだしいいんじゃないか *)
 
 
 
@@ -181,8 +174,3 @@ let () =
   List.iter (fun (term_test, _, _) -> 
     Printf.printf "State: %s\n" (string_of_term term_test)
   ) result
-(* そのままで大丈夫か？ *)
-
-
-
-次のアクションアイテム：　まずは紙の上で確実に理解する
