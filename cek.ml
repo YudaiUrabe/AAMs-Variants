@@ -56,7 +56,6 @@ let step (sigma: config): config =
   match sigma with
   | (TmVar x, rho, kappa) ->
       let Clo(lam, rho') = StringMap.find x rho in (TmAbs lam, rho', kappa)
-  (* ここの理解が結構怪しめかもしれない．．．ひとまずこの上の記述でよしとするか →いいんじゃない？2025/0122　　この下は，（評価文脈って値を考える時に重要だから？）項が値のときに場合分けしてるのかな　*)
   | (TmApp (f,e), rho, kappa) ->
       (f, rho, Ar(e, rho, kappa))
   | (TmAbs lam, rho, Ar(e, rho', kappa)) ->
@@ -111,7 +110,6 @@ suc 1 -> λsz.s(sz) = 2
  let term_test2 = TmApp(
                     TmAbs("n", TmAbs ("s",TmAbs ("z", TmApp (TmVar "s", TmApp(TmApp(TmVar "n", TmVar "s"), TmVar "z"))))),
                     TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))))
-(* このテストちゃんと通過できているか？？？ *)
 let result = evaluate term_test2
 
 (* auxiliary function for this test *)
@@ -143,72 +141,3 @@ let () =
   List.iter (fun (term_test, env, cont) -> 
     Printf.printf "State: %s\n" (string_of_state term_test env cont)
   ) result
-(* 抽象機械を経由して評価関数をかましたのと，入力の式をそのまま(β簡約とか使って変形して)文字列にしたのが一致するかを見ているのかな *)
-
-
-(* 
-  
-次すること；
-・テストのアウトプットの仕方これでいい？入力に対する具体的な挙動を調べる上でこれでいいのか考え物や
-・継続のArとFnの理解（実装としては合っているとは思うけど）をして残る一つのコメントを消す？＋ステップ関数の最初の場合分けの実装の箇所の理解（，継続や環境を使った別のテストの追加？ーこれはまぁ別に不要かと）
-
-メモ：
-・collect関数は，ステップ関数，isFinal関数，状態を受け取って，その状態に対してステップ関数を噛ませまくって，その状態から到達しうる状態のリストを返す
-・type ('k, 'v) map = ('k, 'v) StringMap.t　とJFPみたいに書いたら上手く通らなかった．
-  これを使うにはDataをinput上でしておかなくてはいけないのかな
-  mapではなくて，上の記号をJFPと同様に使いましょうね．→いや，やはり:->はOCamlでは別の意味に使いそうだから避けた方が良さそう．
-・昨日書いたシンタックスシュガーを参考に，cek.cmiとかcek.cmoが作られてるのビミョいが，，，，
-・  (* Environment
-This looks similar to (but different from) substitution in λ-Calculus という余計なことはなるべく書かないようにするか
-envのところは，StringMap.tは，型コンストラクタだから，こいつにdを渡している
-*)
-
-要チェック：
-・storeとstateでタイポしてないか気をつけよ
-・ローとガンマがごちゃごちゃになりかけてるけど，多分，まだ混じってないはず（ローは環境でしょ，ガンマってなんやっけ）
-・シグマは，step関数で書いているから，バッティングしないように．
-・ローも使っているけど，多分変えても変えなくても良さそうな気がする，多分ね
-
-
-＜一応通った例＞
-(* auxiliary functions for this test *)
-let rec string_of_term (t: term) =
-  match t with
-  | TmVar x -> x
-  | TmAbs (x, t) -> "λ" ^ x ^ "." ^ string_of_term t
-  | TmApp (t1, t2) -> "(" ^ string_of_term t1 ^ " " ^ string_of_term t2 ^ ")"
-
-(* auxiliary function to display the environment *)
-let string_of_env (rho: env): string =
-  StringMap.fold (fun key (Clo((x, t), _)) acc ->
-      acc ^ key ^ " -> Clo(" ^ x ^ ", " ^ string_of_term t ^ "); "
-    ) rho ""
-
-(* auxiliary function to display the continuation *)
-let rec string_of_cont (kappa: cont): string =
-  match kappa with
-  | Done -> "Done"
-  | Ar (t, rho, kappa') ->
-      "Ar(" ^ string_of_term t ^ ", " ^ string_of_env rho ^ ", " ^ string_of_cont kappa' ^ ")"
-  | Fn ((x, t), rho, kappa') ->
-      "Fn((" ^ x ^ ", " ^ string_of_term t ^ "), " ^ string_of_env rho ^ ", " ^ string_of_cont kappa' ^ ")"
-
-(* output configuration as string *)
-let string_of_config (term, rho, kappa) =
-  "Term: " ^ string_of_term term ^ "\n" ^
-  "Env: {" ^ string_of_env rho ^ "}\n" ^
-  "Cont: " ^ string_of_cont kappa ^ "\n"
-(* (λa.λb.a)(λc.c) *)
-  let term_test2 = TmApp (TmAbs ("a", TmAbs ("b", TmVar "a")), TmAbs ("c", TmVar "c"))
-  let result2 = evaluate term_test2
-  let () =
-    Printf.printf "Test 2: (λa.λb.a)(λc.c)\n";
-    List.iter (fun config -> 
-      Printf.printf "State:\n%s\n" (string_of_config config)
-    ) result2
-
-(* updated output function *)
-let () =
-  List.iter (fun config -> 
-    Printf.printf "State:\n%s\n" (string_of_config config)
-  ) result2 *)
