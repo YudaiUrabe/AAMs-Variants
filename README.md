@@ -6,7 +6,7 @@
 
 * `cesk_star.ml`: Check test2 again
 
-* `time-stapmed cesk*.ml`: To be tested
+* `time_stapmed_CESK_star.ml`: To be tested
 
 * `abstract time-stapmed cesk*.ml`: temp
 
