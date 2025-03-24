@@ -143,18 +143,3 @@ let () =
   List.iter (fun (test1, env, _, cont) -> 
     Printf.printf "State: %s\n" (string_of_state test1 env cont)
   ) result
-
-
-
-
-
-(* 次のアクションアイテム：
-テストを通す，以上． *)
-
-(* シンタックスシュガーの，ストアの更新用の記法を追加した． *)
-(* TmVar の場合、Clo の中身は TmAbs であることが前提になっているが、それを明示的にチェックしていない
-もし AddrMap.find a s が Cont を返したらエラーになるって． *)
-(* storableのCont of contってOCamlのコードとして正しいか． 少し気になっただけかもだが，Cloってこんなふうにofで定義してたっけ．*)
-(* CESKと全く同じだが，Allocの実装自信がない *)
-(* sから全てのキーを取り出して，そのリストから最大のキーを求め，その最大のキーに１を加えたものをアドレスとして返す *)
-(* アロックの一行目って，.find x rhoでいい？ *)
