@@ -4,9 +4,9 @@
 
 * `cesk.ml`: Done
 
-* `cesk_star.ml`: Pattern matching in the transition function is not exhaustive
+* `cesk_star.ml`: Check test2 again
 
-* `time-stapmed cesk*.ml`: temp
+* `time-stapmed cesk*.ml`: To be tested
 
 * `abstract time-stapmed cesk*.ml`: temp
 
