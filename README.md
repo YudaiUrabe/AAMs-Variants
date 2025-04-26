@@ -1,8 +1,8 @@
 ## Static Analysis for Programs with Effect Handlers by Abstracting Abstract Machines
 
-* `cek.ml`: Done
+* `cek.ml`: More refinement needed on substitution then pass the test2
 
-* `cesk.ml`: Done
+* `cesk.ml`: Done -> Not yet
 
 * `cesk_star.ml`: Check test2 again
 
