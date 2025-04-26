@@ -14,7 +14,7 @@ and term =
 (* SYNTAX of CEK machine *)
 
 (* configuration (state)
- triple of a control string(an expression), an environment and continuation
+ triple of an expression, an environment and continuation
 *)
 type config = term * env * cont
 
@@ -46,46 +46,48 @@ let (==>) x y = (x, y)  (* tuple *)
 let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key value acc) map entries
 
 
-
-
-(* SEMANTICS of CEK machine *)
-
-(* (one-step) transition relation for the CEK machine 
-*)
-let step (sigma: config): config = 
-  match sigma with
-  | (TmVar x, rho, kappa) ->
-      let Clo(lam, rho') = StringMap.find x rho in (TmAbs lam, rho', kappa)
-  | (TmApp (f,e), rho, kappa) ->
-      (f, rho, Ar(e, rho, kappa))
-  | (TmAbs lam, rho, Ar(e, rho', kappa)) ->
-      (e, rho', Fn(lam, rho, kappa)) 
-  | (TmAbs lam, rho, Fn((x, e) , rho', kappa)) ->
-      (e,rho'//[x ==> Clo(lam, rho)], kappa)
-  | _ ->
-      failwith "Invalid configuration"
+(* SEMANTICS of the CEK machine *)
 
 (* injection function 
 the initial machine state for a closed expression e *)
 let inject (e:term) : config =
   (e, StringMap.empty, Done)
 
+(* (one-step) transition relation for the CEK machine 
+*)
+let step (sigma: config): config = 
+  match sigma with
+  | (TmVar x, rho, kappa) ->
+      let Clo(v, rho') = StringMap.find x rho in (TmAbs v, rho', kappa)
+  | (TmApp (f,e), rho, kappa) ->
+      (f, rho, Ar(e, rho, kappa))
+  | (TmAbs v, rho, Ar(e, rho', kappa)) ->
+      (e, rho', Fn(v, rho, kappa)) 
+  | (TmAbs v, rho, Fn((x, e), rho', kappa)) ->
+      (e, rho'//[x ==> Clo(v, rho)], kappa)
+  | _ ->
+      failwith "Invalid configuration"
+
+
+
+
+
 (* auxiliary functions for evaluation function *)
 (* isFinal 
 A state is final when it has no next step.
-This function checks if the continuation is empty.
+This function checks if the term is a value and the continuation is empty.
 *)
-let isFinal (sigma_state: config) : bool =
-  match sigma_state with
-    |(TmAbs _, rho, Done) -> true
+let isFinal (s: config) : bool =
+  match s with
+    |(TmAbs _, _, Done) -> true
     | _ -> false
 
 (* collect *)
-let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: config): config list =
-  if isFinal sigma_collect then
-    [sigma_collect]
+let rec collect (f: config -> config) (isFinal: config-> bool)(state: config): config list =
+  if isFinal state then
+    [state]
   else
-    sigma_collect :: collect f isFinal (f sigma_collect)
+    state :: collect f isFinal (f state)
 
 (* evaluation function *)
 (* Create an initial state from the term e using "inject",
@@ -96,23 +98,8 @@ let evaluate (e: term): config list =
 
 
 
-
-(*　test1 
-(λa.a)(λb.b) -> (λb.b)
-*)
-let term_test = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
-
-(* test2
-suc = λnsz.s(nsz)
-1 = λsz.sz
-suc 1 -> λsz.s(sz) = 2
- *)
- let term_test2 = TmApp(
-                    TmAbs("n", TmAbs ("s",TmAbs ("z", TmApp (TmVar "s", TmApp(TmApp(TmVar "n", TmVar "s"), TmVar "z"))))),
-                    TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))))
-let result = evaluate term_test2
-
-(* auxiliary function for this test *)
+(* tests *)
+(* auxiliary function for the tests *)
 let rec string_of_term (t: term) =
   match t with
   | TmVar x -> x
@@ -136,8 +123,51 @@ let string_of_state (t: term) (env: env) (cont: cont) =
    string_of_cont cont ^
   "}"
 
+
+  (*　test1 
+(λa.a)(λb.b) -> (λb.b)
+*)
+let term_test1 = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
+
+(* test2
+suc = λnsz.s(nsz)
+1 = λsz.sz
+suc 1 -> λsz.s(sz) = 2
+ *)
+ let term_test2 = TmApp(
+                    TmAbs("n", TmAbs ("s",TmAbs ("z", TmApp (TmVar "s", TmApp(TmApp(TmVar "n", TmVar "s"), TmVar "z"))))),
+                    TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))))
+
+let result = evaluate term_test1
+
 (* output *)
 let () = 
   List.iter (fun (term_test, env, cont) -> 
     Printf.printf "State: %s\n" (string_of_state term_test env cont)
   ) result
+
+
+
+
+
+
+
+(* check the correctness *)
+let isFinal2 (s: config) : bool =
+  match s with
+    |(TmAbs _, _, Done) -> true
+    | _ -> false
+let rec run (s:config): config =
+      if isFinal2 s then s
+      else run (step s)
+let evaluate2 (e: term): config =
+  run(inject e)
+
+  let () =
+  let result1 = evaluate2 term_test1 in
+  let result2 = evaluate2 term_test2 in
+  print_endline "\n Correctness";
+  assert(result1 = (TmAbs ("b", TmVar "b"), StringMap.empty, Done));
+  print_endline "test1 passed";
+  assert(result2 = (TmAbs ("s", TmAbs ("z", TmApp(TmVar "s", TmApp (TmVar "s", TmVar "z")))), StringMap.empty, Done));
+  print_endline "test2 passed";
