@@ -58,7 +58,8 @@ let inject (e:term) : config =
 let step (sigma: config): config = 
   match sigma with
   | (TmVar x, rho, kappa) ->
-      let Clo(v, rho') = StringMap.find x rho in (TmAbs v, rho', kappa)
+      let Clo((x', e'), rho') = StringMap.find x rho in (TmAbs (x', e'), rho', kappa)
+
   | (TmApp (f,e), rho, kappa) ->
       (f, rho, Ar(e, rho, kappa))
   | (TmAbs v, rho, Ar(e, rho', kappa)) ->
@@ -67,8 +68,6 @@ let step (sigma: config): config =
       (e, rho'//[x ==> Clo(v, rho)], kappa)
   | _ ->
       failwith "Invalid configuration"
-
-
 
 
 
@@ -107,10 +106,10 @@ let rec string_of_term (t: term) =
   | TmApp (t1, t2) -> "(" ^ string_of_term t1 ^ " " ^ string_of_term t2 ^ ")"
 let rec string_of_env (env: env) =
   let bindings = StringMap.bindings env in
-  let binding_to_string (var, Clo ((x, t), _)) =
-      var ^ " ↦ λ" ^ x ^ "." ^ string_of_term t
+  let binding_to_string (var, Clo ((x, t), clo_env)) =
+      var ^ " ↦ (λ" ^ x ^ "." ^ string_of_term t ^ ", " ^ string_of_env clo_env ^ ")"
     in
-    "{" ^ String.concat ", " (List.map binding_to_string bindings) ^ "}"
+    "{" ^ String.concat ", " (List.map binding_to_string bindings) ^ "}"    
 let rec string_of_cont (cont: cont) =
   match cont with
   | Done -> "Done"
@@ -125,6 +124,8 @@ let string_of_state (t: term) (env: env) (cont: cont) =
 
 
   (*　test1 
+  eval ((λa.a)(λb.b)) = <λb.b, φ, mt>
+  cf. Under standard call-by-value evaluation,
 (λa.a)(λb.b) -> (λb.b)
 *)
 let term_test1 = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
@@ -132,13 +133,15 @@ let term_test1 = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
 (* test2
 suc = λnsz.s(nsz)
 1 = λsz.sz
+eval (suc 1) = <λs.λz.(s ((n s) z)), [n ↦ (λs.λz.(s z), φ)], mt>
+cf. Under standard call-by-value evaluation,
 suc 1 -> λsz.s(sz) = 2
  *)
  let term_test2 = TmApp(
                     TmAbs("n", TmAbs ("s",TmAbs ("z", TmApp (TmVar "s", TmApp(TmApp(TmVar "n", TmVar "s"), TmVar "z"))))),
                     TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))))
 
-let result = evaluate term_test1
+let result = evaluate term_test2
 
 (* output *)
 let () = 
@@ -169,5 +172,9 @@ let evaluate2 (e: term): config =
   print_endline "\n Correctness";
   assert(result1 = (TmAbs ("b", TmVar "b"), StringMap.empty, Done));
   print_endline "test1 passed";
-  assert(result2 = (TmAbs ("s", TmAbs ("z", TmApp(TmVar "s", TmApp (TmVar "s", TmVar "z")))), StringMap.empty, Done));
-  print_endline "test2 passed";
+  match result2 with
+  | (TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmApp (TmVar "s", TmVar "z")))), _, Done) -> 
+      print_endline "test2 passed"
+  | _ -> failwith "test2 failed"
+
+
