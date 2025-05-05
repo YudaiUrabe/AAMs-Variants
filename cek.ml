@@ -59,7 +59,6 @@ let step (sigma: config): config =
   match sigma with
   | (TmVar x, rho, kappa) ->
       let Clo((x', e'), rho') = StringMap.find x rho in (TmAbs (x', e'), rho', kappa)
-
   | (TmApp (f,e), rho, kappa) ->
       (f, rho, Ar(e, rho, kappa))
   | (TmAbs v, rho, Ar(e, rho', kappa)) ->
@@ -69,7 +68,7 @@ let step (sigma: config): config =
   | _ ->
       failwith "Invalid configuration"
 
-
+      
 
 (* auxiliary functions for evaluation function *)
 (* isFinal 
@@ -141,17 +140,20 @@ suc 1 -> λsz.s(sz) = 2
                     TmAbs("n", TmAbs ("s",TmAbs ("z", TmApp (TmVar "s", TmApp(TmApp(TmVar "n", TmVar "s"), TmVar "z"))))),
                     TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))))
 
-let result = evaluate term_test2
 
 (* output *)
-let () = 
-  List.iter (fun (term_test, env, cont) -> 
-    Printf.printf "State: %s\n" (string_of_state term_test env cont)
-  ) result
-
-
-
-
+  let print_trace name result =
+    Printf.printf "\n=== %s ===\n" name;
+    List.iter (fun (term, env, cont) ->
+      Printf.printf "State: %s\n" (string_of_state term env cont)
+    ) result
+  
+  let () =
+    let result1 = evaluate term_test1 in
+    let result2 = evaluate term_test2 in
+    print_trace "Test 1" result1;
+    print_trace "Test 2" result2
+  
 
 
 
@@ -169,12 +171,13 @@ let evaluate2 (e: term): config =
   let () =
   let result1 = evaluate2 term_test1 in
   let result2 = evaluate2 term_test2 in
+  (*(* print result2 *)
+   Printf.printf "Result2: %s\n" (let (t, env, cont) = result2 in string_of_state t env cont); *)
   print_endline "\n Correctness";
   assert(result1 = (TmAbs ("b", TmVar "b"), StringMap.empty, Done));
   print_endline "test1 passed";
-  match result2 with
-  | (TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmApp (TmVar "s", TmVar "z")))), _, Done) -> 
-      print_endline "test2 passed"
-  | _ -> failwith "test2 failed"
-
+  assert(result2 =  (TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmApp (TmApp (TmVar "n", TmVar "s"),TmVar "z")))),
+  StringMap.empty//["n" ==> Clo (("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))),StringMap.empty)],
+  Done));
+  print_endline "test2 passed"; 
 
