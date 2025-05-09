@@ -1,14 +1,21 @@
 ## Static Analysis for Programs with Effect Handlers by Abstracting Abstract Machines
 
-* `cek.ml`: More refinement needed on substitution then pass the test2
+* `cek.ml`: Done
 
-* `cesk.ml`: Done -> Not yet
+* `cesk.ml`: A little more refinement needed on substitution and alloc function
+  * Difference from the previous AM:
+
 
 * `cesk_star.ml`: Check test2 again
+  * Difference from the previous AM:
 
 * `time_stapmed_CESK_star.ml`: To be tested
+  * Difference from the previous AM:
+
 
 * `abstract time-stapmed cesk*.ml`: temp
+  * Difference from the previous AM:
+
 
 * (`krivine.ml`: To be tested)
 ---
