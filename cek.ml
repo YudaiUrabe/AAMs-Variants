@@ -140,6 +140,13 @@ suc 1 -> λsz.s(sz) = 2
                     TmAbs("n", TmAbs ("s",TmAbs ("z", TmApp (TmVar "s", TmApp(TmApp(TmVar "n", TmVar "s"), TmVar "z"))))),
                     TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))))
 
+(* test3
+ eval((λx.λy.x) (λz.z) (λw.w)) = <λz.z, φ, mt>
+ *)
+let term_test3 = TmApp(
+  TmApp(TmAbs("x", TmAbs("y", TmVar "x")), TmAbs("z", TmVar "z")), 
+  TmAbs("w", TmVar "w"))
+
 
 (* output *)
   let print_trace name result =
@@ -151,8 +158,10 @@ suc 1 -> λsz.s(sz) = 2
   let () =
     let result1 = evaluate term_test1 in
     let result2 = evaluate term_test2 in
+    let result3 = evaluate term_test3 in
     print_trace "Test 1" result1;
-    print_trace "Test 2" result2
+    print_trace "Test 2" result2;
+    print_trace "Test 3" result3
   
 
 
@@ -171,6 +180,7 @@ let evaluate2 (e: term): config =
   let () =
   let result1 = evaluate2 term_test1 in
   let result2 = evaluate2 term_test2 in
+  let result3 = evaluate2 term_test3 in
   (*(* print result2 *)
    Printf.printf "Result2: %s\n" (let (t, env, cont) = result2 in string_of_state t env cont); *)
   print_endline "\n Correctness";
@@ -180,4 +190,8 @@ let evaluate2 (e: term): config =
   StringMap.empty//["n" ==> Clo (("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))),StringMap.empty)],
   Done));
   print_endline "test2 passed"; 
+  assert(result3 = (TmAbs ("z", TmVar "z"), StringMap.empty, Done));
+  print_endline "test3 passed";
+
+
 
