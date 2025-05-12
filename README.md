@@ -2,22 +2,24 @@
 
 * `cek.ml`: Done
 
-* `cesk.ml`: A little more refinement needed on substitution and alloc function
+* `cesk.ml`: Done
   * Difference from the previous AM:
-
+  Adding a store to CEK machine and use it allocate variable bindings,
+   thereby eliminating recursion from the environment in CEK machine
 
 * `cesk_star.ml`: Check test2 again
   * Difference from the previous AM:
 
+
 * `time_stapmed_CESK_star.ml`: To be tested
   * Difference from the previous AM:
-
 
 * `abstract time-stapmed cesk*.ml`: temp
   * Difference from the previous AM:
 
-
-* (`krivine.ml`: To be tested)
+* (`krivine.ml`: To be tested
+  * Difference from the CEK machine:
+)
 ---
 
 * `cek_handlers.ml`: To be tested
