@@ -114,7 +114,7 @@ let evaluate (e: term): config list =
 
 
   (* tests *)
-  (* test 
+  (* test1 
 (λa.a)(λb.b) -> (λb.b)　*)
 let term_test1 = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
 
@@ -128,8 +128,13 @@ suc 1 -> λsz.s(sz) = 2
                     TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))))
 
 
-(* test3 *)
-
+(* test3
+     eval((λx.λy.x) (λz.z) (λw.w)) 
+*)
+let term_test3 =
+  TmApp
+    ( TmApp (TmAbs ("x", TmAbs ("y", TmVar "x")), TmAbs ("z", TmVar "z")),
+      TmAbs ("w", TmVar "w") )
 
 
 (* auxiliary function for the tests *)
@@ -189,10 +194,10 @@ let print_trace name result =
 let () =
   let result1 = evaluate term_test1 in
   let result2 = evaluate term_test2 in
-  (* let result3 = evaluate term_test3 in *)
+  let result3 = evaluate term_test3 in
   print_trace "Test 1" result1;
-  print_trace "Test 2" result2
-  (* print_trace "Test 3" result3 *)
+  print_trace "Test 2" result2;
+  print_trace "Test 3" result3
 
 
 
