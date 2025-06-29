@@ -123,40 +123,72 @@ let evaluate (e: term): config list =
 
 
 
-(* test *)
-let test1 = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
+(* tests *)
+  (* test1 
+(λa.a)(λb.b) -> (λb.b)　*)
+let term_test1 = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
 
-let result = evaluate test1
+
+(* test2
+suc = λnsz.s(nsz)
+1 = λsz.sz
+suc 1 -> λsz.s(sz) = 2
+ *)
+ let term_test2 = TmApp(
+                    TmAbs("n", TmAbs ("s",TmAbs ("z", TmApp (TmVar "s", TmApp(TmApp(TmVar "n", TmVar "s"), TmVar "z"))))),
+                    TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))))
+
+(* test3
+     eval((λx.λy.x) (λz.z) (λw.w)) 
+*)
+let term_test3 =
+  TmApp
+    ( TmApp (TmAbs ("x", TmAbs ("y", TmVar "x")), TmAbs ("z", TmVar "z")),
+      TmAbs ("w", TmVar "w") )
+
+
+
 
 (* auxiliary functions for this test *)
-let rec string_of_term (t: term) =
+let rec string_of_term (t: term):string =
   match t with
   | TmVar x -> x
   | TmAbs (x, t) -> "λ" ^ x ^ "." ^ string_of_term t
   | TmApp (t1, t2) -> "(" ^ string_of_term t1 ^ " " ^ string_of_term t2 ^ ")"
-let rec string_of_env (env: env) =
+let rec string_of_env (env: env):string =
   let bindings = StringMap.bindings env in
   let binding_to_string (var, addr) =
       var ^ " ↦ " ^ string_of_int addr
     in
     "{" ^ String.concat ", " (List.map binding_to_string bindings) ^ "}"
-let rec string_of_cont (cont: cont) =
+let rec string_of_cont (cont: cont):string =
   match cont with
   | Done -> "Done"
   | Ar (t, _, _) -> "Ar(" ^ string_of_term t ^ ", ...)"
   | Fn ((x, t), _, _) -> "Fn(λ" ^ x ^ "." ^ string_of_term t ^ ", ...)"
-let string_of_state (t: term) (env: env) (cont: cont) =
+let string_of_state (t: term) (env: env) (cont: cont): string =
   "{" ^
    string_of_term t ^ ", " ^
    string_of_env env ^ ", " ^
    string_of_cont cont ^
   "}"
 
-(* output *)
-let () = 
-  List.iter (fun (test1, env, _, cont,_) -> 
-    Printf.printf "State: %s\n" (string_of_state test1 env cont)
-  ) result
 
 
 
+
+
+  let print_trace name result =
+    Printf.printf "\n=== %s ===\n" name;
+    List.iter
+      (fun (term, env, store, cont) ->
+        Printf.printf "State: %s\n" (string_of_state term env cont))
+      result
+  
+  let () =
+    let result1 = evaluate term_test1 in
+    let result2 = evaluate term_test2 in
+    let result3 = evaluate term_test3 in
+    print_trace "Test 1" result1;
+    print_trace "Test 2" result2;
+    print_trace "Test 3" result3
