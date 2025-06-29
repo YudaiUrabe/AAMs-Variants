@@ -2,20 +2,22 @@
 
 * `cek.ml`: Done
 
+
 * `cesk.ml`: Done
   * Difference from the previous AM:
-  Adding a store to CEK machine and use it allocate variable bindings,
-   thereby eliminating recursion from the environment in CEK machine
 
-* `cesk_star.ml`: Check test2 again
-  * Difference from the previous AM:
+
+* `cesk_star.ml`: Almost Done. Want to add one more test and check the correctness automatically.
+
 
 
 * `time_stapmed_CESK_star.ml`: To be tested
   * Difference from the previous AM:
 
+
 * `abstract time-stapmed cesk*.ml`: temp
   * Difference from the previous AM:
+
 
 * (`krivine.ml`: To be tested
   * Difference from the CEK machine:
@@ -23,6 +25,22 @@
 ---
 
 * `cek_handlers.ml`: To be tested
+  * Difference from the CEK machine:
+
+  - The target language has been enriched with more features.
+
+
+  - Tags, such as 'Config2', have been added to distinguish between different types of abstract machine states.
+  - Function closures are embedded within the definition of values in the abstract machine, rather than defining them independently.
+  - 
+
+  - An interpretation function for values('interpret_value') is added, which differs from the standard CEK machine.
+  - The 'injection' and 'eval' functions are defined over 'comp' rather than 'term'.
+  - 
+
+  - In the current tests, intermediate steps are not displayed and only the first argument of the machine state is checked.
+
+
 
 * `cesk_handlers.ml`: More refinement needed for the transition function
 
