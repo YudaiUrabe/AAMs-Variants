@@ -4,7 +4,7 @@
   * Different from the add/mul version, this implementation includes a function called `evaluate2`, which returns a single final state.
 
 * `cesk.ml`: Done
-  * Difference from the previous AM:
+  * Differences from the previous AM:\\
     _Adding a store to CEK machine and use it allocate variable bindings, thereby eliminating recursion from the environment in CEK machine_
     <!-- ＜対象言語＞ -->
     <!-- ＜抽象機械のシンタックス＞ -->
@@ -24,9 +24,10 @@
     * Since the recursive structure of `env` was removed, the `string_of_env` in the test was changed from `let rec` to just `let`.
     * The second argument of `binding_to_string` is now an address instead of a closure.
     * Added `string_of_store`.
-  
-* `cesk_star.ml`: Almost Done. Want to check the correctness automatically.
-  * Difference from the previous AM(Changes were minimal.):
+ 
+
+* `cesk_star.ml`: Almost Done. Plan to check the correctness automatically.
+  * Differences from the previous AM(Changes were minimal.):
     <!-- ＜対象言語＞ -->
     <!-- ＜抽象機械のシンタックス＞ -->
     * A third element `addr` was added to both `Ar` and `Fn` in the `cont`. Accordingly, the continuation was changed from `kappa` to `a'` in the third case of the transition function.
@@ -41,23 +42,33 @@
     * In the `let rec string_of_cont` of the auxiliary function for the tests, `string_of_cont k` was changed to `string_of_int a`.
     * Since `let string_of_store` uses `let rec string_of_cont`, the definitions were reordered so that `string_of_cont` comes ahead of `string_of_store`.
 
-* `time_stapmed_CESK_star.ml`: Plan to change the outputs and check the correctness automatically.
-  * Difference from the previous AM:
+* `time_stapmed_CESK_star.ml`: Almost Done. Plan to  check the correctness automatically.
+  * Differences from the previous AM:
+    <!-- ＜抽象機械のシンタックス＞ -->
     * Added `time` as a new component of the machine state, which also affects `alloc` and `tick`.
+        <!-- ＜抽象機械のセマンティクス＞ -->
     * Added `tick`function and modified all states (including tests) to include the fifth element for time. 
     * `alloc` is almost the same, but here it extracts the store from the input state.
+    * The `isFinal` function has been updated considering the additional component `time` in the machine state.
+        <!-- ＜テストや出力＞ -->
+    * The `string_of_state` function now uses `string_of_int` to include time.
+    * The `print_trace` function has been updated to handle the fifth element `time`.
+
 
 * `abstract time-stapmed cesk*.ml`: temp
-  * Difference from the previous AM:
+  * Differences from the previous AM:
+    <!-- ＜抽象機械のシンタックス＞ -->
     * Abstract only the `store`.
+      <!-- ＜抽象機械のセマンティクス＞ -->
+    <!-- ＜テストや出力＞ -->
 
 * (`krivine.ml`: To be tested
-  * Difference from the CEK machine:
+  * Differences from the CEK machine:
 )
 ---
 
 * `cek_handlers.ml`: To be tested
-  * Difference from the CEK machine:
+  * Differences from the CEK machine:
     <!-- ＜対象言語＞ -->
     * The target language has been enriched with more features.
     <!-- ＜抽象機械のシンタックス＞ -->
@@ -72,7 +83,6 @@
     * 
     <!-- ＜テストや出力＞ -->
     * In the current tests, intermediate steps are not displayed and only the first argument of the machine state is checked.
-
 
 
 * `cesk_handlers.ml`: More refinement needed for the transition function
