@@ -12,6 +12,7 @@ and term =
   | TmApp of term * term
 
 (* time-stamped CESK* machine *)
+
 (* SYNTAX of time-stamped CESK* machine *)
 
 (* configuration*)
@@ -103,6 +104,7 @@ let step (sigma: config): config =
   | _ -> failwith "Invalid configuration"
 
 
+
 (* auxiliary functions for evaluation function *)
 (* isFinal *)
 let isFinal (state: config) : bool =
@@ -111,11 +113,11 @@ let isFinal (state: config) : bool =
     | _ -> false
 
 (* collect *)
-let rec collect (f: config -> config) (isFinal: config-> bool)(sigma_collect: config): config list =
-  if isFinal sigma_collect then
-    [sigma_collect]
+let rec collect (f: config -> config) (isFinal: config-> bool)(state: config): config list =
+  if isFinal state then
+    [state]
   else
-    sigma_collect :: collect f isFinal (f sigma_collect)
+    state :: collect f isFinal (f state)
 
 (* evaluation function *)
 let evaluate (e: term): config list =
@@ -124,6 +126,46 @@ let evaluate (e: term): config list =
 
 
 (* tests *)
+(* auxiliary functions for this test *)
+let rec string_of_term (t: term): string =
+  match t with
+  | TmVar x -> x
+  | TmAbs (x, t) -> "λ" ^ x ^ "." ^ string_of_term t
+  | TmApp (t1, t2) -> "(" ^ string_of_term t1 ^ " " ^ string_of_term t2 ^ ")"
+let rec string_of_env (env: env): string =
+  let bindings = StringMap.bindings env in
+  let binding_to_string (var, addr) =
+      var ^ " ↦ " ^ string_of_int addr
+    in
+    "{" ^ String.concat ", " (List.map binding_to_string bindings) ^ "}"
+  let rec string_of_cont (cont : cont) : string =
+      match cont with
+      | Done -> "Done"
+      | Ar (t, rho, a) -> "Ar(" ^ string_of_term t ^ ", "^ string_of_env rho ^ ", " ^ string_of_int a ^ ")"
+      | Fn ((x, t), rho, a) ->
+          "Fn(λ" ^ x ^ "." ^ string_of_term t ^ ", "^ string_of_env rho ^ ", " ^ string_of_int a ^ ")"
+  let string_of_store (store : store) : string =
+    let bindings = AddrMap.bindings store in
+    let binding_to_string (addr, storable) =
+      match storable with
+      | Clo ((x, t), clo_env) ->
+        string_of_int addr ^ " ↦ (λ" ^ x ^ "." ^ string_of_term t ^ ", "
+      ^ string_of_env clo_env ^ ")"
+      | Cont k->
+        string_of_int addr ^ " ↦ (" ^ string_of_cont k ^ ")"
+    in
+    "{" ^ String.concat ", " (List.map binding_to_string bindings) ^ "}"
+
+let string_of_state (t: term) (env: env)(store: store) (cont: cont)(time: time): string =
+  "{" ^
+   string_of_term t ^ ", " ^
+   string_of_env env ^ ", " ^
+   string_of_store store ^ ", " ^
+   string_of_cont cont ^ ", " ^
+   string_of_int time ^
+  "}"
+
+
   (* test1 
 (λa.a)(λb.b) -> (λb.b)　*)
 let term_test1 = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
@@ -139,7 +181,7 @@ suc 1 -> λsz.s(sz) = 2
                     TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))))
 
 (* test3
-     eval((λx.λy.x) (λz.z) (λw.w)) 
+   (λx.λy.x) (λz.z) (λw.w) ->*  λz.z
 *)
 let term_test3 =
   TmApp
@@ -147,42 +189,12 @@ let term_test3 =
       TmAbs ("w", TmVar "w") )
 
 
-
-
-(* auxiliary functions for this test *)
-let rec string_of_term (t: term):string =
-  match t with
-  | TmVar x -> x
-  | TmAbs (x, t) -> "λ" ^ x ^ "." ^ string_of_term t
-  | TmApp (t1, t2) -> "(" ^ string_of_term t1 ^ " " ^ string_of_term t2 ^ ")"
-let rec string_of_env (env: env):string =
-  let bindings = StringMap.bindings env in
-  let binding_to_string (var, addr) =
-      var ^ " ↦ " ^ string_of_int addr
-    in
-    "{" ^ String.concat ", " (List.map binding_to_string bindings) ^ "}"
-let rec string_of_cont (cont: cont):string =
-  match cont with
-  | Done -> "Done"
-  | Ar (t, _, _) -> "Ar(" ^ string_of_term t ^ ", ...)"
-  | Fn ((x, t), _, _) -> "Fn(λ" ^ x ^ "." ^ string_of_term t ^ ", ...)"
-let string_of_state (t: term) (env: env) (cont: cont): string =
-  "{" ^
-   string_of_term t ^ ", " ^
-   string_of_env env ^ ", " ^
-   string_of_cont cont ^
-  "}"
-
-
-
-
-
-
+(* output *)
   let print_trace name result =
     Printf.printf "\n=== %s ===\n" name;
     List.iter
-      (fun (term, env, store, cont) ->
-        Printf.printf "State: %s\n" (string_of_state term env cont))
+      (fun (term, env, store, cont, time) ->
+        Printf.printf "State: %s\n" (string_of_state term env store cont time))
       result
   
   let () =
@@ -192,3 +204,7 @@ let string_of_state (t: term) (env: env) (cont: cont): string =
     print_trace "Test 1" result1;
     print_trace "Test 2" result2;
     print_trace "Test 3" result3
+  
+
+(* check the correctness *)
+
