@@ -24,9 +24,8 @@
     * Since the recursive structure of `env` was removed, the `string_of_env` in the test was changed from `let rec` to just `let`.
     * The second argument of `binding_to_string` is now an address instead of a closure.
     * Added `string_of_store`.
-
-
-* `cesk_star.ml`: Almost Done. Want to add one more test and check the correctness automatically.
+  
+* `cesk_star.ml`: Almost Done. Want to check the correctness automatically.
   * Difference from the previous AM(Changes were minimal.):
     <!-- ＜対象言語＞ -->
     <!-- ＜抽象機械のシンタックス＞ -->
@@ -42,7 +41,7 @@
     * In the `let rec string_of_cont` of the auxiliary function for the tests, `string_of_cont k` was changed to `string_of_int a`.
     * Since `let string_of_store` uses `let rec string_of_cont`, the definitions were reordered so that `string_of_cont` comes ahead of `string_of_store`.
 
-* `time_stapmed_CESK_star.ml`: To be tested
+* `time_stapmed_CESK_star.ml`: Plan to change the outputs and check the correctness automatically.
   * Difference from the previous AM:
     * Added `time` as a new component of the machine state, which also affects `alloc` and `tick`.
     * Added `tick`function and modified all states (including tests) to include the fifth element for time. 
