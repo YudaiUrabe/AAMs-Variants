@@ -126,7 +126,7 @@ let evaluate (e: term): config list =
 
 
 (* tests *)
-(* auxiliary functions for this test *)
+(* auxiliary functions for the tests *)
 let rec string_of_term (t: term): string =
   match t with
   | TmVar x -> x
@@ -207,4 +207,38 @@ let term_test3 =
   
 
 (* check the correctness *)
+
+let rec run (s : config) : config = 
+  if isFinal s then s
+  else run (step s)
+let evaluate2 (e : term) : config =
+ run (inject e)
+ let () =
+ let result1 = evaluate2 term_test1 in
+ let result2 = evaluate2 term_test2 in
+ let result3 = evaluate2 term_test3 in
+ print_endline "\n Correctness";
+
+ let _ =
+  match result1 with
+| (TmAbs ("b", TmVar "b"), _, _, Done, _) ->
+   print_endline "test1 passed"
+  | _ -> failwith "test1 failed";
+
+in
+ (* assert (result1 = 
+ *)
+
+let _ =
+  match result2 with
+| (TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmApp (TmApp (TmVar "n", TmVar "s"),TmVar "z")))), _, _, Done, _) ->
+   print_endline "test2 passed"
+  | _ -> failwith "test2 failed";
+in
+
+  match result3 with
+| (TmAbs ("z", TmVar "z"), _, _, Done, _) ->
+   print_endline "test3 passed"
+  | _ -> failwith "test3 failed"
+
 
