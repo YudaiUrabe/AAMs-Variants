@@ -81,7 +81,7 @@ let step (sigma: config): config =
     let addr = StringMap.find x rho in
     let(Clo(lam, rho')) = AddrMap.find addr s in
      (TmAbs lam, rho', s, kappa)
-  | (TmApp (f,e), rho, s, kappa) ->
+ | (TmApp (f,e), rho, s, kappa) ->
       let a' = alloc s in
       let s' = s///[a' ==> Cont kappa] in
       let kappa' = Ar(e, rho, a') in
@@ -92,7 +92,7 @@ let step (sigma: config): config =
     let Cont kappa = AddrMap.find b s in
     let a' = alloc s in
       (e, rho'//[x ==> a'], s///[a' ==> Clo(v, rho)], kappa)
-  | _ -> failwith "Invalid Configuration"
+ | _ -> failwith "Invalid Configuration"
 
 
 (* auxiliary functions for evaluation function *)  
@@ -105,7 +105,10 @@ let step (sigma: config): config =
  (* collect *)
  let rec collect (f : config -> config) (isFinal : config -> bool)
  (state : config) : config list =
-if isFinal state then [ state ] else state :: collect f isFinal (f state)
+if isFinal state then 
+  [ state ]
+else
+  state :: collect f isFinal (f state)
 
 
 (* evaluation function *)
@@ -114,36 +117,12 @@ let evaluate (e: term): config list =
 
 
   (* tests *)
-  (* test1 
-(λa.a)(λb.b) -> (λb.b)　*)
-let term_test1 = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
-
-(* test2
-suc = λnsz.s(nsz)
-1 = λsz.sz
-suc 1 -> λsz.s(sz) = 2
- *)
- let term_test2 = TmApp(
-                    TmAbs("n", TmAbs ("s",TmAbs ("z", TmApp (TmVar "s", TmApp(TmApp(TmVar "n", TmVar "s"), TmVar "z"))))),
-                    TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))))
-
-
-(* test3
-     eval((λx.λy.x) (λz.z) (λw.w)) 
-*)
-let term_test3 =
-  TmApp
-    ( TmApp (TmAbs ("x", TmAbs ("y", TmVar "x")), TmAbs ("z", TmVar "z")),
-      TmAbs ("w", TmVar "w") )
-
-
 (* auxiliary function for the tests *)
 let rec string_of_term (t: term) : string  =
   match t with
   | TmVar x -> x
   | TmAbs (x, t) -> "λ" ^ x ^ "." ^ string_of_term t
   | TmApp (t1, t2) -> "(" ^ string_of_term t1 ^ " " ^ string_of_term t2 ^ ")"
-
 
   let rec string_of_env (env: env) : string  =
   let bindings = StringMap.bindings env in
@@ -179,7 +158,28 @@ let string_of_state (t: term) (env: env) (store : store)(cont: cont) : string  =
    string_of_cont cont ^
   "}"
 
+  (* test1 
+(λa.a)(λb.b) -> (λb.b)　*)
+let term_test1 = TmApp (TmAbs ("a", TmVar "a"), TmAbs ("b", TmVar "b"))
 
+(* test2
+suc = λnsz.s(nsz)
+1 = λsz.sz
+suc 1 -> λsz.s(sz) = 2
+ *)
+ let term_test2 = TmApp(
+                    TmAbs("n", TmAbs ("s",TmAbs ("z", TmApp (TmVar "s", TmApp(TmApp(TmVar "n", TmVar "s"), TmVar "z"))))),
+                    TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmVar "z"))))
+
+
+(* test3
+
+   (λx.λy.x) (λz.z) (λw.w) ->*  λz.z
+*)
+let term_test3 =
+  TmApp
+    ( TmApp (TmAbs ("x", TmAbs ("y", TmVar "x")), TmAbs ("z", TmVar "z")),
+      TmAbs ("w", TmVar "w") )
 
 
 
@@ -202,3 +202,39 @@ let () =
 
 
 (* check the correctness *)
+let rec run (s : config) : config = 
+  if isFinal s then s
+  else run (step s)
+let evaluate2 (e : term) : config =
+ run (inject e)
+ let () =
+ let result1 = evaluate2 term_test1 in
+ let result2 = evaluate2 term_test2 in
+ let result3 = evaluate2 term_test3 in
+ print_endline "\n Correctness";
+
+ let _ =
+  match result1 with
+| (TmAbs ("b", TmVar "b"), _, _, Done) ->
+   print_endline "test1 passed"
+  | _ -> failwith "test1 failed";
+ (* assert (result1 = 
+     (TmAbs ("b", TmVar "b"),
+       StringMap.empty,
+       AddrMap.empty /// [ 1 ==> Clo (("b", TmVar "b"), StringMap.empty) ],
+       Done));
+  print_endline "test1 passed"; *)
+in
+
+let _ =
+  match result2 with
+| (TmAbs ("s", TmAbs ("z", TmApp (TmVar "s", TmApp (TmApp (TmVar "n", TmVar "s"),TmVar "z")))), _, _, Done) ->
+   print_endline "test2 passed"
+  | _ -> failwith "test2 failed";
+in
+
+  match result3 with
+| (TmAbs ("z", TmVar "z"), _, _, Done) ->
+   print_endline "test3 passed"
+  | _ -> failwith "test3 failed"
+
