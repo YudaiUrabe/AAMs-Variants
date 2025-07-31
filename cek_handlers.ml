@@ -28,8 +28,6 @@ and handler =
   | OperationClause of label * var * var_cont * comp * handler
 
 
-
-
 (* SYNTAX of CEK machine with handlers *)
 (* ref. An Abstract Machine Semantics for Handlers, Mar 2017, p.18 *)
 
@@ -52,8 +50,9 @@ and cont =
   | ContCons of cont_frame * cont
 
 and cont' = 
-    | ContNil'
-    | ContCons' of cont_frame * cont'
+  | ContNil'
+  | ContCons' of cont_frame * cont'
+
 
 (* Continuations frames *)
 and cont_frame = pure_cont * chi
@@ -83,21 +82,7 @@ let (//) map entries = List.fold_left(fun acc(key, value) -> StringMap.add key v
    Usage: map // entries *)
 
 
-
-
 (* SEMANTICS of this machine *)
-
-(* Identity Continuation *)
-let idCont = [([], (StringMap.empty, ReturnClause("x", Return (TmVar "
-x"))))]
-
-
-(* injection function M-INIT
-map a computation term into an machine configuration
-*)
-let inject (m:comp) : config =
-  (m, StringMap.empty, idCont)
-
 (* Interpretation function for values *)
 let interpret_value (tv: termvalue)(rho: val_env): amvalue =
   match tv with
@@ -109,54 +94,98 @@ let interpret_value (tv: termvalue)(rho: val_env): amvalue =
   | TmAbs lam -> AMValClo(rho, lam)
 
 
+(* k1 ++ k2: Concatenates two continuations by chaining k2 to the end of k1, like @ for OCaml lists *)
+  let rec cont_append (k1 : cont) (k2 : cont) : cont =
+    match k1 with
+    | ContNil -> k2
+    | ContCons (frame, rest) -> ContCons (frame, cont_append rest k2)
+
+  let rec cont'_append (k1 : cont') (k2 : cont') : cont' =
+    match k1 with
+    | ContNil' -> k2
+    | ContCons' (frame, rest) -> ContCons' (frame, cont'_append rest k2)
+
+(* Convert cont' to cont *)
+let rec cont'_to_cont (k : cont') : cont =
+  match k with
+  | ContNil' -> ContNil
+  | ContCons'(frame, rest) -> ContCons(frame, cont'_to_cont rest)
 
 
+(* injection function M-INIT
+map a computation term into an machine configuration
+*)
+let inject (m:comp) : config =
+  Config1(m, StringMap.empty, ContNil)
 
 (* transition function *)
 (* ref."Liberating Effects with Rows and Handlers", FIg.9 *)
 let step (sigma: config): config = 
-    match sigma with
-    | (TmApp(v,w), rho, kappa) -> 
-      let v' = interpret_value v rho in
-      let w' = interpret_value w rho in
+  match sigma with
+    |Config1(m, rho, kappa) -> 
+      (match m with
+      | TmApp(v,w)->
+        let v' = interpret_value v rho in
+        let w' = interpret_value w rho in
         (match v' with
         | AMValClo(rho', (x, m)) -> 
-          (m, StringMap.add x w' rho', kappa)  (* M-APP *)
+          Config1(m, StringMap.add x w' rho', kappa)  (* M-APP *)
         | AMValCont(kappa') ->
-          (Return(w), rho, kappa' @ kappa)(* M-APPCONT(M-RESUME) *)
-          ) 
-        | _ -> failwith "Application error: not an amvalue(i.e. closure or continuation) "
-
-    | (Let(x,m,n), rho, (s,chi)::kappa) ->
-        (m, rho, ((rho, x, n) :: s, chi) :: kappa) (* M-LET *)
-    | (Handle(m, h), rho, kappa) ->
-        (m, rho, ([],(rho, h))::kappa) (* M-HANDLE *)
-
-    | (Return v, rho, ((rho', x, n)::s, chi)::kappa) ->
-         (n, StringMap.add x (interpret_value v rho) rho', (s,chi)::kappa) (* M-RETCONT(M-PURE-CONT) *)
-    | (Return v, rho, ([],(rho', h))::kappa) ->
-        (match h with 
-          | ReturnClause(x, m) -> 
-            (m, StringMap.add x (interpret_value v rho) rho', kappa)  (* M-RETHANDLER(M-GET-CONT) *)
-
+          Config1(Return(w), rho, cont_append kappa' kappa)(* M-APPCONT(M-RESUME) *)
+        )   
+      |Let(x,m1,m2)->
+        (match kappa with
+          | ContCons((s,chi),kappa')->
+            Config1(m1, rho, ContCons((PureContCons((rho, x, m2) , s), chi) , kappa')) (* M-LET *)
+          | ContNil -> 
+              failwith "Let without continuation"
+        )
+      | Handling(m1, h) ->
+            Config1(m1, rho, ContCons((PureContNil,(rho, h)), kappa)) (* M-HANDLE *)
+      | Return(v) ->
+        (match kappa with
+          | ContCons((PureContCons((rho', x, m2), s), chi), kappa') ->
+            Config1(m2, StringMap.add x (interpret_value v rho) rho', ContCons((s,chi), kappa')) (* M-RETCONT(M-PURE-CONT) *)
+          | ContCons((PureContNil,(rho', h)), kappa')->
+            (match h with 
+              | ReturnClause(x, m_ret) -> 
+                  Config1(m_ret, StringMap.add x (interpret_value v rho) rho', kappa')  (* M-RETHANDLER(M-GET-CONT) *)
+              | OperationClause _ -> 
+                  failwith "Handler must be ReturnClause"
+            )
         )
 
+      | Do(l, v) ->
+        Config2(Do(l, v), rho, kappa, ContNil') (* M-OP(M-Doδ) *)
+      )
+    | Config2(m, rho, kappa, kappa') ->      
+      (match m with
+      | Do(l, v) ->  
+        (match kappa with 
+        | ContCons((s, (rho', h)), kappa)->
+          (match h with 
+            | OperationClause(l', x, k, m, h') when l = l'-> 
+
+                let v_val = interpret_value v rho in
+                let cont_val = AMValCont (cont_append (cont'_to_cont kappa') (ContCons((s, (rho', h)),ContNil))) in
+                let updated_rho = StringMap.add x v_val (StringMap.add k cont_val rho') in
+                Config1(m, updated_rho, kappa) (* M-OP-HANDLE(M-Do†) *)
+            | OperationClause _ ->
+                Config2(Do(l, v), rho, kappa, cont'_append kappa' (ContCons'((s, (rho', h)), ContNil'))) (* M-OP-FORWARD(1)(M-FORWARD) *)
+            | ReturnClause _ ->
+                Config2(Do(l, v), rho, kappa, cont'_append kappa' (ContCons'((s, (rho', h)), ContNil'))) (* M-OP-FORWARD(2)(M-FORWARD) *)
+          )
+        | ContNil->
+           failwith "Unexpected ContNil in Config2"
+        )  
+      | _ -> failwith "Invalid computation in Config2"
+      )
 
 
 
-    | (Do(l, v), rho, kappa) ->
-       (Do(l, v), rho, kappa, []) (* M-OP(M-Doδ) *)
-    | (Do(l, v), rho, (s, (rho', h))::kappa, kappa') ->
-      match h with 
-      | OperationClause(l', x, k, m)
-        if l = l'-> 
-          let v_val = interpret_value v rho in
-          let cont_val = AMValCont (kappa' @ [(s, (rho', h))]) in
-          let updated_rho = StringMap.add x v_val (StringMap.add k cont_val rho') in
-          (m, updated_rho, kappa) (* M-OP-HANDLE(M-Do†) *)
-        else (Do(l, v), rho, kappa, kappa' @ [(s, (rho', h))]) (* M-OP-FORWARD(1)(M-FORWARD) *)
-      | ReturnClause _ ->
-          (Do(l, v), rho, kappa, kappa' @ [(s, (rho', h))]) (* M-OP-FORWARD(2)(M-FORWARD) *)
+
+
+
 
 
 
@@ -170,7 +199,7 @@ This function checks if the term is a value and the continuation is empty.
 *)
 let isFinal (s: config) : bool =
   match s with
-    |(Return _, _, ContNil) -> true
+    |Config1(Return _, _, ContNil) -> true
     | _ -> false
 
 (* collect *)
@@ -185,4 +214,5 @@ let rec collect (f: config -> config) (isFinal: config-> bool)(state: config): c
 then apply "step" repeatedly until the final state is reached, saving all intermediate states in a list.*)
 let evaluate (m: comp): config list =
   collect step isFinal(inject m)
+
 
