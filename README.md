@@ -4,7 +4,7 @@
   * Different from the add/mul version, this implementation includes a function called `evaluate2`, which returns a single final state.
 
 * `cesk.ml`: Done
-  * Differences from the previous AM:\\
+  * Differences from the previous AM:<br>
     _Adding a store to CEK machine and use it allocate variable bindings, thereby eliminating recursion from the environment in CEK machine_
     <!-- ＜対象言語＞ -->
     <!-- ＜抽象機械のシンタックス＞ -->
@@ -24,7 +24,9 @@
     * Since the recursive structure of `env` was removed, the `string_of_env` in the test was changed from `let rec` to just `let`.
     * The second argument of `binding_to_string` is now an address instead of a closure.
     * Added `string_of_store`.
- 
+
+
+
 
 * `cesk_star.ml`: Almost Done. Plan to check the correctness automatically.
   * Differences from the previous AM(Changes were minimal.):
@@ -42,7 +44,7 @@
     * In the `let rec string_of_cont` of the auxiliary function for the tests, `string_of_cont k` was changed to `string_of_int a`.
     * Since `let string_of_store` uses `let rec string_of_cont`, the definitions were reordered so that `string_of_cont` comes ahead of `string_of_store`.
 
-* `time_stapmed_CESK_star.ml`: Almost Done. Plan to  check the correctness automatically.
+* `time_stapmed_CESK_star.ml`: Almost Done. Plan to check the correctness automatically.
   * Differences from the previous AM:
     <!-- ＜抽象機械のシンタックス＞ -->
     * Added `time` as a new component of the machine state, which also affects `alloc` and `tick`.
@@ -62,9 +64,7 @@
       <!-- ＜抽象機械のセマンティクス＞ -->
     <!-- ＜テストや出力＞ -->
 
-* (`krivine.ml`: To be tested
-  * Differences from the CEK machine:
-)
+
 ---
 
 * `cek_handlers.ml`: To be tested
@@ -73,25 +73,21 @@
     * The target language has been enriched with more features.
     <!-- ＜抽象機械のシンタックス＞ -->
     * Tags, such as `Config2`, have been added to distinguish between different types of abstract machine states.
-    * Function closures are embedded within the definition of values in the abstract machine, rather than defining them independently.
-    *  
+
 
 
     <!-- ＜抽象機械のセマンティクス＞ -->
     * An interpretation function for values(`interpret_value`) is added, which differs from the standard CEK machine.
     * The `injection` and `eval` functions are defined over `comp` rather than `term`.
-    * 
+
     <!-- ＜テストや出力＞ -->
     * In the current tests, intermediate steps are not displayed and only the first argument of the machine state is checked.
 
 
+
 * `cesk_handlers.ml`: More refinement needed for the transition function
 
-* `cesk*_handlers.ml`: temp
 
-* `time-stapmed cesk*_handlers.ml`: temp
-
-* `abstract time-stapmed cesk*_handlers.ml`: temp
 ---
 
  REFERENCES:
